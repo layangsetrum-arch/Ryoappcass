@@ -145,6 +145,12 @@ export interface BookingRecord {
   alamatPengantaran: string;
   alamatPenjemputan: string;
   kurirPengantar?: string;
+  // 13-Field Standard Booking Data
+  alamatKtp?: string;
+  alamatSaatIni?: string; // Alamat rumah/kos/hotel saat ini di Malang/Batu
+  idSosmed?: string;      // ID Sosmed: IG / TikTok / FB
+  noTelpDarurat?: string; // Nomor telepon darurat
+  jumlahHelm?: number;    // Jumlah Helm SNI (1 atau 2)
   totalHargaEstimasi: number;
   luarJamOperasional: boolean;
   catatanKhusus?: string;

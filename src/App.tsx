@@ -684,6 +684,41 @@ export const App: React.FC = () => {
     );
   };
 
+  // 9.5 Master Model Motor CRUD (TASK-009)
+  const handleAddMotor = (motorData: Omit<MotorModel, 'id'>) => {
+    const nextId = Math.max(...db.motors.map(m => m.id), 0) + 1;
+    const newMotor: MotorModel = {
+      ...motorData,
+      id: nextId,
+    };
+    const newDb: RyokoDatabase = {
+      ...db,
+      motors: [...db.motors, newMotor],
+    };
+    updateDatabaseState(newDb, 'Tambah Master Model Motor', `Penambahan master model ${newMotor.namaModel} ke katalog`);
+    alert(`Model motor ${newMotor.namaModel} berhasil ditambahkan ke katalog armada!`);
+  };
+
+  const handleDeleteMotor = (motorId: number) => {
+    const motor = db.motors.find(m => m.id === motorId);
+    if (!motor) return;
+    const unitCount = db.units.filter(u => u.motorId === motorId).length;
+    if (unitCount > 0) {
+      if (!confirm(`Model ${motor.namaModel} memiliki ${unitCount} unit fisik di garasi. Tetap hapus model ini dari katalog?`)) {
+        return;
+      }
+    } else {
+      if (!confirm(`Hapus master model ${motor.namaModel} dari katalog?`)) {
+        return;
+      }
+    }
+    const newDb: RyokoDatabase = {
+      ...db,
+      motors: db.motors.filter(m => m.id !== motorId),
+    };
+    updateDatabaseState(newDb, 'Hapus Model Motor', `Penghapusan master model ${motor.namaModel}`);
+  };
+
   // 10. Settings & Reset
   const handleUpdateSettings = (settings: RentalSettings) => {
     const newDb: RyokoDatabase = {
@@ -912,10 +947,12 @@ export const App: React.FC = () => {
             <FleetView
               db={db}
               activeUser={activeUser}
+              onAddMotor={handleAddMotor}
               onUpdateMotor={m => {
                 const updated = db.motors.map(item => (item.id === m.id ? m : item));
                 updateDatabaseState({ ...db, motors: updated }, 'Update Model Motor', `Perbarui tarif ${m.namaModel}`);
               }}
+              onDeleteMotor={handleDeleteMotor}
               onAddPhysicalUnit={handleAddPhysicalUnit}
               onApplyBulkPriceAdjustment={handleApplyBulkPriceAdjustment}
             />

@@ -12,6 +12,7 @@ import {
   calculateOvertimePenalty,
 } from '../services/bookingEngine';
 import { getUserEffectivePermissions } from '../utils/userPermissions';
+import { CountdownAlertBanner } from './CountdownAlertBanner';
 import {
   Bike,
   Compass,
@@ -568,79 +569,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Active Rentals Live Tracker Strip */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <Clock className="w-4 h-4 text-blue-400" />
-              <span>Unit Sedang Disewa (Di Tangan Penyewa)</span>
-            </h3>
-            <p className="text-xs text-slate-400">Pantau jadwal pengembalian dan potensi denda keterlambatan D-27</p>
-          </div>
-          <button
-            onClick={() => onNavigateTab('bookings')}
-            className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold"
-          >
-            <span>Semua Transaksi</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {activeDisewaBookings.length === 0 ? (
-          <p className="text-xs text-slate-500 py-3 text-center">Saat ini tidak ada unit yang sedang disewa.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {activeDisewaBookings.map(b => {
-              const motor = db.motors.find(m => m.id === b.motorId) || db.motors[0];
-              const penalty = calculateOvertimePenalty(b, motor, currentEpoch);
-              const isOvertime = penalty.terlambat;
-
-              return (
-                <div
-                  key={b.id}
-                  onClick={() => onSelectBooking(b)}
-                  className={`bg-slate-950/90 rounded-xl p-3 border transition cursor-pointer ${
-                    isOvertime
-                      ? 'border-amber-600/80 hover:border-amber-400'
-                      : 'border-slate-800 hover:border-blue-600/60'
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-xs font-bold text-cyan-400">{b.snapshotKodeUnit}</span>
-                      <span className="text-xs text-slate-300 block font-semibold">{b.nama}</span>
-                    </div>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                        isOvertime ? 'bg-amber-950 text-amber-300 border border-amber-700' : 'bg-blue-950 text-blue-300'
-                      }`}
-                    >
-                      {isOvertime ? '⚠️ Overtime' : '🛵 Disewa'}
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] text-slate-400 mt-1">{b.snapshotNamaMotor} ({b.labelDurasi})</p>
-
-                  <div className="mt-2 pt-2 border-t border-slate-800/80 text-[11px] flex justify-between items-center">
-                    <span className="text-slate-400">Jadwal Kembali:</span>
-                    <span className={`font-mono font-semibold ${isOvertime ? 'text-amber-400' : 'text-slate-200'}`}>
-                      {b.jamTanggalSelesai.replace('T', ' ')}
-                    </span>
-                  </div>
-
-                  {isOvertime && (
-                    <div className="mt-1.5 p-1.5 bg-amber-950/60 rounded border border-amber-800/60 text-[10px] text-amber-300 flex justify-between">
-                      <span>Denda D-27:</span>
-                      <strong className="font-mono">{penalty.dendaFormat}</strong>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {/* Active Rentals Live Tracker & Real-Time Countdown Strip (TASK-008) */}
+      <CountdownAlertBanner
+        db={db}
+        onSelectBooking={onSelectBooking}
+        title="Sistem Countdown Pengembalian Real-Time & Alert Jatuh Tempo (TASK-008)"
+      />
     </div>
   );
 };

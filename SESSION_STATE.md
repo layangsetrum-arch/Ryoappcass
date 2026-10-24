@@ -17,12 +17,12 @@ Format dibaca skrip `scripts/zlce/zlce-check.py`; jangan ubah nama field, kolom,
 
 ## 1. STATUS AKTIF
 
-* **Timestamp Audit:** 2026-10-24 17:10:00 WIB
+* **Timestamp Audit:** 2026-10-24 17:58:00 WIB
 * **Cabang Git:** `main`
-* **Task Terakhir DONE:** `TASK-007`
-* **Task Aktif:** `TASK-008`
-* **Status Task Aktif:** READY
-* **Task Berikutnya:** `TASK-009`
+* **Task Terakhir DONE:** `TASK-009`
+* **Task Aktif:** -
+* **Status Task Aktif:** DONE
+* **Task Berikutnya:** -
 
 ---
 
@@ -37,8 +37,8 @@ Format dibaca skrip `scripts/zlce/zlce-check.py`; jangan ubah nama field, kolom,
 | `TASK-005` | Integrasi Wizard Recovery ZLCE Studio & Verifikasi Akhir | TASK-004 | DONE | RecoveryTab wizard terintegrasi di UI APK, zlce-check.py valid 0 error, build production sukses | ya |
 | `TASK-006` | Panel Manajemen User & Role-Based Access Control (4 Tingkat) | TASK-005 | DONE | UserManagementView, CourierDashboardView, TopBar Quick Switcher terpasang; tsc 0 error, build sukses | ya |
 | `TASK-007` | Modul Kwitansi Digital Paperless & Salin Teks Ringkasan Nota Kasir Cepat | TASK-006 | DONE | DigitalReceiptModal.tsx paperless PDF & salin nota cepat terintegrasi di BookingsView & CourierDashboardView; tsc 0 error, build lolos | ya |
-| `TASK-008` | Sistem Countdown Pengembalian Real-Time & Alert Jatuh Tempo di Dashboard/Kurir | TASK-007 | READY | - | - |
-| `TASK-009` | Master Model Motor Dinamis & Manajemen Tarif Khusus di FleetView | TASK-008 | PENDING | - | - |
+| `TASK-008` | Sistem Countdown Pengembalian Real-Time & Alert Jatuh Tempo di Dashboard/Kurir | TASK-007 | DONE | CountdownAlertBanner, countdownHelper, live ticker, 4 tingkat urgensi (Aman, H-2, H-1, Overdue), denda D-27, WA bergradasi; lint & compile 0 error | ya |
+| `TASK-009` | Master Model Motor Dinamis & Manajemen Tarif Khusus di FleetView | TASK-008 | DONE | CRUD master model, ModelMotorModal, auto-kalkulasi multi-tier, toggle aktif/nonaktif, integrasi form booking & LocalStorage; lint 0 error, build lolos | ya |
 
 Bukti Verifikasi: ringkasan + lokasi bukti (mis. "lint 0 error, 12/12 test pass"). `DONE` tanpa bukti dan `Disetujui: ya` tidak valid.
 
@@ -54,7 +54,7 @@ Catatan tulis-dahulu: isi SEBELUM memulai langkah multi-berkas, perbarui SESUDAH
 * **Sudah Dilakukan:** -
 * **Langkah Berikutnya (persis):** -
 * **Perintah Verifikasi:** -
-* **Diperbarui:** 2026-10-24 17:10:00 WIB
+* **Diperbarui:** 2026-10-24 17:58:00 WIB
 
 ---
 
@@ -79,21 +79,27 @@ Status: `OPEN | CONFIRMED | REJECTED | ANSWERED`.
 | `REV-01` | M | BR-01: Ganti sewa 2 minggu menjadi 1 bulan; BR-02: Tambah status diservis; BR-04: Buffer 60 menit; BR-06: Nonaktifkan anti-NIK | Dituangkan ke TASK-002 dan TASK-004 |
 | `REV-02` | M | Panel Catatan Servis Rutin 7 Kategori & Penugasan Kurir | Dituangkan ke TASK-003 |
 | `REV-03` | S | Integrasi Tab Recovery ZLCE Studio & Generator Snapshot | Dituangkan ke TASK-005 |
+| `REV-04` | S | Standarisasi 13 Field Template Form Booking (Nama, Alamat KTP, ID Pendukung, Alamat Saat Ini, ID Sosmed, No Telp, No Darurat, Jadwal Mulai, Jadwal Selesai, Lokasi Antar, Lokasi Jemput, Model Unit, Jumlah Helm) | Dituangkan ke types/ryoko, NewBookingModal, whatsappService, DigitalReceiptModal, BookingsView, CourierDashboardView |
 
 ---
 
 ## 6. CATATAN SERAH TERIMA (ditimpa; maks. ~10 baris)
 
-* 2026-10-24: Proyek beralih penuh ke metodologi ZLCE v3.2.2.
-* 2026-10-24: Feedback pengguna disepakati: tarif bulanan, buffer 60 menit, posisi kurir, catatan servis 7 kategori, dan RBAC 4 tingkat tuntas.
-* 2026-10-24: Repositori berhasil ditautkan dan sinkron dengan GitHub kepekmalang-cell/RyoAPPkepek.
-* 2026-10-24: TASK-007 (Kwitansi Digital Paperless PDF, BAST, dan Salin Ringkasan Nota Cepat) telah selesai dan teruji.
-* 2026-10-24: Status siap melanjutkan ke TASK-008 (Countdown Real-Time & Auto-Alert Jatuh Tempo).
+* 2026-10-24: Seluruh task pengembangan ZLCE (TASK-001 s/d TASK-009) telah selesai 100% dan teruji lolos build & lint.
+* 2026-10-24: Standarisasi 13 Field Template Booking Form (REV-04) aktif di antarmuka, kwitansi, dan parser WhatsApp.
+* 2026-10-24: Fitur utama aktif: sewa bulanan, buffer 60 menit, posisi kurir, catatan servis 7 kategori, RBAC 4 tingkat.
+* 2026-10-24: Kwitansi paperless digital PDF & salin ringkasan nota kasir WhatsApp (TASK-007) terintegrasi penuh.
+* 2026-10-24: Sistem countdown real-time & alert jatuh tempo bergradasi (TASK-008) aktif di Dashboard dan Kurir.
+* 2026-10-24: Master Model Motor Dinamis & CRUD tarif bertingkat (TASK-009) aktif di FleetView dan langsung terhubung ke Form Booking.
+* 2026-10-24: Aplikasi siap operasional penuh untuk Ryoko Rent Malang & Batu.
 
 ---
 
 ## 7. LOG AUDIT (terbaru di atas; arsipkan entri lama ke `docs/archive/`)
 
+* **2026-10-24 18:25:00 WIB:** REV-04 selesai; Standarisasi 13 field form booking (Nama, Alamat KTP, ID Pendukung, Alamat Saat Ini, ID Sosmed, No Telp, No Darurat, Jadwal Mulai, Jadwal Selesai, Lokasi Antar, Lokasi Jemput, Model Unit, Jumlah Helm), tombol 1-klik salin format kosong, dan parser chat WA cerdas terintegrasi penuh.
+* **2026-10-24 17:58:00 WIB:** TASK-009 selesai; CRUD master model motor dinamis, ModelMotorModal, tombol auto-kalkulasi tarif multi-tier, toggle aktif/nonaktif, dan integrasi pilihan booking di FleetView & NewBookingModal terpasang TASK-009.
+* **2026-10-24 17:45:00 WIB:** TASK-008 selesai; CountdownAlertBanner.tsx, countdownHelper.ts, live ticking timer, 4 tingkat urgensi (Aman, H-2 Jam, H-1 Jam, Overdue), denda D-27, dan WA alert bergradasi terpasang di DashboardView, CourierDashboardView, dan BookingsView TASK-008.
 * **2026-10-24 17:10:00 WIB:** TASK-007 selesai; DigitalReceiptModal.tsx paperless PDF, salin teks nota kasir cepat, dan BAST terpasang di BookingsView dan CourierDashboardView TASK-007.
 * **2026-10-24 16:30:00 WIB:** TASK-006 selesai; repositori Git diinisialisasi dan ditautkan ke origin kepekmalang-cell/RyoAPPkepek.
 * **2026-10-24 15:30:00 WIB:** TASK-005 selesai; Wizard Recovery ZLCE terpasang di antarmuka APK dan zlce-check lolos 0 error TASK-005.

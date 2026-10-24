@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   RyokoDatabase,
   BookingRecord,
@@ -19,8 +19,14 @@ import {
   ArrowRight,
   ShieldAlert,
   Receipt,
+  Flame,
 } from 'lucide-react';
-import { generateWhatsAppLink } from '../services/whatsappService';
+import {
+  generateWhatsAppLink,
+  generateGradedDueReminderWhatsAppUrl,
+} from '../services/whatsappService';
+import { computeBookingCountdown } from '../utils/countdownHelper';
+import { CountdownAlertBanner } from './CountdownAlertBanner';
 
 interface CourierDashboardViewProps {
   db: RyokoDatabase;
@@ -41,6 +47,15 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
 }) => {
   const [selectedTaskTab, setSelectedTaskTab] = useState<'antar' | 'jemput' | 'motor_kurir'>('antar');
 
+  // Live countdown ticker
+  const [nowEpoch, setNowEpoch] = useState<number>(() => Math.floor(Date.now() / 1000));
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowEpoch(Math.floor(Date.now() / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Filter pengantaran: booking approved yang menunggu serah terima ke tamu
   const deliveryTasks = db.bookings.filter(b => b.status === 'ryokou_approved');
 
@@ -57,10 +72,24 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
     window.open(url, '_blank');
   };
 
-  // Helper WA chat to guest for return/pickup
+  // Helper WA chat to guest for return/pickup with graded urgency alert (TASK-008)
   const handleChatGuestPickup = (booking: BookingRecord) => {
-    const text = `Halo Kak ${booking.nama}, kami dari kurir Ryoko Rent Motor. Mengingatkan waktu sewa untuk motor ${booking.snapshotNamaMotor} berakhir pada ${booking.jamTanggalSelesai.replace('T', ' ')}. Apakah unit siap untuk kami jemput / dikembalikan ke Pool? Terima kasih!`;
-    const url = generateWhatsAppLink(booking.nomorWa, text);
+    const motor = db.motors.find(m => m.id === booking.motorId) || db.motors[0];
+    const info = computeBookingCountdown(booking, motor, nowEpoch);
+    const penaltyInfo = info.isOverdue
+      ? {
+          nominalDenda: info.penalty.nominalDenda,
+          dendaFormat: info.penalty.dendaFormat,
+          menitTelat: info.penalty.menitTelat,
+        }
+      : undefined;
+
+    const url = generateGradedDueReminderWhatsAppUrl(
+      booking,
+      info.urgency,
+      info.humanText,
+      penaltyInfo
+    );
     window.open(url, '_blank');
   };
 
@@ -215,20 +244,33 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
                         <span className="font-semibold text-slate-200">
                           {booking.snapshotNamaMotor} {physicalUnit && `(${physicalUnit.nomorPlat})`}
                         </span>
+                        <span className="text-[10px] text-emerald-400 block mt-0.5">
+                          🪖 {booking.jumlahHelm || 2} Helm SNI + Jas Hujan
+                        </span>
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-400 block">Waktu Mulai Sewa:</span>
                         <span className="font-semibold text-amber-300">
                           {booking.jamTanggalMulai.replace('T', ' ')} WIB
                         </span>
+                        {booking.noTelpDarurat && (
+                          <span className="text-[10px] text-amber-400 font-mono block mt-0.5">
+                            Darurat: {booking.noTelpDarurat}
+                          </span>
+                        )}
                       </div>
                       <div className="sm:col-span-2">
                         <span className="text-[10px] text-slate-400 block flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-cyan-400" /> Alamat Pengantaran / Pool:
+                          <MapPin className="w-3 h-3 text-cyan-400" /> Alamat Pengantaran / Domisili:
                         </span>
-                        <span className="font-medium text-slate-300">
-                          {booking.alamatPengantaran || (booking.pool === 'batu' ? db.settings.poolBatuAlamat : db.settings.poolMalangAlamat)}
+                        <span className="font-medium text-slate-300 block">
+                          {booking.alamatPengantaran || booking.alamatSaatIni || (booking.pool === 'batu' ? db.settings.poolBatuAlamat : db.settings.poolMalangAlamat)}
                         </span>
+                        {booking.alamatSaatIni && booking.alamatSaatIni !== booking.alamatPengantaran && (
+                          <span className="text-[10px] text-cyan-400/90 block mt-0.5">
+                            🏠 Domisili Tamu: {booking.alamatSaatIni}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -276,12 +318,19 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
       {/* TAB 2: PENJEMPUTAN (PICKUP) */}
       {selectedTaskTab === 'jemput' && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
+          {/* Real-Time Countdown Alert Banner for Couriers */}
+          <CountdownAlertBanner
+            db={db}
+            compact={true}
+            title="Sistem Countdown Penjemputan Real-Time (TASK-008)"
+          />
+
+          <div className="flex items-center justify-between px-1 pt-1">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-cyan-400" />
               <span>Daftar Penjemputan / Pengembalian ({returnTasks.length})</span>
             </h3>
-            <span className="text-[10px] text-slate-400">Unit Sedang Dibawa Tamu</span>
+            <span className="text-[10px] text-slate-400">Urutan Prioritas Tenggat Sewa</span>
           </div>
 
           {returnTasks.length === 0 ? (
@@ -294,20 +343,33 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
             <div className="space-y-3">
               {returnTasks.map(booking => {
                 const physicalUnit = db.units.find(u => u.id === booking.unitId);
+                const motor = db.motors.find(m => m.id === booking.motorId) || db.motors[0];
+                const info = computeBookingCountdown(booking, motor, nowEpoch);
+                const badge = info.urgencyBadge;
 
                 return (
                   <div
                     key={booking.id}
-                    className="bg-slate-900/90 border border-cyan-800/40 rounded-xl p-4 space-y-3 shadow-md"
+                    className={`bg-slate-900/90 rounded-xl p-4 space-y-3 shadow-md border transition ${
+                      info.urgency === 'overdue'
+                        ? 'border-rose-600 shadow-rose-950/30'
+                        : info.urgency === 'h_1_jam'
+                        ? 'border-orange-500 shadow-orange-950/20'
+                        : info.urgency === 'h_2_jam'
+                        ? 'border-amber-500/80'
+                        : 'border-cyan-800/40'
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-2.5">
                       <div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-mono text-xs font-bold text-cyan-400">
                             {booking.noBooking}
                           </span>
-                          <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded border border-cyan-500/30">
-                            Sedang Disewa
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded font-bold border ${badge.bg} ${badge.text} ${badge.border}`}
+                          >
+                            <span>{badge.icon}</span> {badge.label}
                           </span>
                         </div>
                         <h4 className="text-base font-bold text-white mt-1">{booking.nama}</h4>
@@ -320,6 +382,60 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
                         </span>
                       </div>
                     </div>
+
+                    {/* Real-time Countdown Banner inside card */}
+                    <div className={`p-2.5 rounded-lg border flex items-center justify-between ${
+                      info.urgency === 'overdue'
+                        ? 'bg-rose-950/50 border-rose-800/80'
+                        : info.urgency === 'h_1_jam'
+                        ? 'bg-orange-950/50 border-orange-800/70'
+                        : info.urgency === 'h_2_jam'
+                        ? 'bg-amber-950/40 border-amber-800/60'
+                        : 'bg-slate-950/80 border-slate-800'
+                    }`}>
+                      <div>
+                        <span className="text-[9px] uppercase tracking-wider block font-semibold text-slate-400">
+                          {info.isOverdue ? 'Terlambat / Overdue:' : 'Sisa Waktu Sewa:'}
+                        </span>
+                        <span className="text-xs font-bold text-slate-200">
+                          {info.humanText}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className={`font-mono text-base font-extrabold tracking-wider ${
+                          info.urgency === 'overdue'
+                            ? 'text-rose-400 animate-pulse'
+                            : info.urgency === 'h_1_jam'
+                            ? 'text-orange-400'
+                            : info.urgency === 'h_2_jam'
+                            ? 'text-amber-400'
+                            : 'text-emerald-400'
+                        }`}>
+                          {info.formattedCountdown}
+                        </span>
+                        <span className="text-[9px] block text-slate-400 font-mono">
+                          Tenggat: {booking.jamTanggalSelesai.split('T')[1]?.slice(0, 5) || '?'} WIB
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Overdue penalty banner for courier */}
+                    {info.isOverdue && (
+                      <div className="p-2 rounded-lg bg-rose-950/80 border border-rose-800 text-[10px] space-y-1">
+                        <div className="flex justify-between items-center text-rose-300">
+                          <span className="font-semibold flex items-center gap-1">
+                            <Flame className="w-3 h-3 text-rose-400" />
+                            <span>Denda Keterlambatan (D-27):</span>
+                          </span>
+                          <strong className="font-mono text-xs text-rose-200 font-bold">
+                            {info.penalty.dendaFormat}
+                          </strong>
+                        </div>
+                        <p className="text-[9px] text-rose-300/80 italic leading-tight">
+                          {info.penalty.keterangan}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Unit & Jam Kembali */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/60">
@@ -349,10 +465,25 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                       <button
                         onClick={() => handleChatGuestPickup(booking)}
-                        className="flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold py-2 px-2.5 rounded-lg transition active:scale-95 shadow-sm"
+                        className={`flex items-center justify-center gap-1.5 text-white text-xs font-semibold py-2 px-2.5 rounded-lg transition active:scale-95 shadow-sm ${
+                          info.urgency === 'overdue'
+                            ? 'bg-rose-600 hover:bg-rose-500'
+                            : info.urgency === 'h_1_jam'
+                            ? 'bg-orange-600 hover:bg-orange-500'
+                            : info.urgency === 'h_2_jam'
+                            ? 'bg-amber-600 hover:bg-amber-500'
+                            : 'bg-emerald-700 hover:bg-emerald-600'
+                        }`}
+                        title="Kirim pesan WhatsApp pengingat / alert jatuh tempo"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Chat WhatsApp</span>
+                        <span>
+                          {info.urgency === 'overdue'
+                            ? 'Alert Overdue'
+                            : info.urgency === 'h_1_jam'
+                            ? 'Alert H-1 Jam'
+                            : 'Chat Pengingat'}
+                        </span>
                       </button>
 
                       {onOpenReceiptModal && (
@@ -369,8 +500,10 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
                       <button
                         onClick={() => {
                           const pool = booking.pool || 'malang';
-                          if (confirm(`Konfirmasi motor ${booking.snapshotKodeUnit} telah dijemput dan masuk ke ${pool === 'batu' ? 'Pool Batu' : 'Pool Malang'}?`)) {
-                            onConfirmFinish(booking.id, pool, { nominal: 0, keterangan: 'Selesai dijemput kurir' });
+                          const penaltyNominal = info.isOverdue ? info.penalty.nominalDenda : 0;
+                          const penaltyKet = info.isOverdue ? info.penalty.keterangan : 'Selesai dijemput kurir';
+                          if (confirm(`Konfirmasi motor ${booking.snapshotKodeUnit} telah dijemput dan masuk ke ${pool === 'batu' ? 'Pool Batu' : 'Pool Malang'}?${penaltyNominal > 0 ? ` (Denda terhitung: ${info.penalty.dendaFormat})` : ''}`)) {
+                            onConfirmFinish(booking.id, pool, { nominal: penaltyNominal, keterangan: penaltyKet });
                           }
                         }}
                         className="flex items-center justify-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold py-2 px-2.5 rounded-lg transition active:scale-95 shadow-md shadow-cyan-950"

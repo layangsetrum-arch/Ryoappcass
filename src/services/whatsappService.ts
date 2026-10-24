@@ -40,21 +40,26 @@ export function generateBookingConfirmationWhatsAppUrl(
   const customerTypeLabel = booking.tandaPelanggan === 'langganan' ? 'Pelanggan Langganan' : 'Pelanggan Baru';
 
   const lines = [
-    'Halo Admin *Ryokourent Malang & Batu*, berikut rincian pemesanan sewa motor:',
+    'Halo Admin *Ryokourent Malang & Batu*, berikut rincian pemesanan sewa motor (Format Baku 13 Poin):',
     '',
     `*No. Booking:* ${booking.noBooking}`,
-    `*Nama Penyewa:* ${booking.nama}`,
-    `*No. WhatsApp:* ${booking.nomorWa || '-'}`,
-    `*Status Pelanggan:* ${customerTypeLabel}`,
-    `*Unit Motor:* ${booking.snapshotNamaMotor}`,
+    `1. *Nama:* ${booking.nama}`,
+    `2. *Alamat KTP:* ${booking.alamatKtp || '-'}`,
+    `3. *ID Pendukung:* ${booking.jenisIdPendukung || 'SIM C'}`,
+    `4. *Alamat Saat Ini (Rumah/Kos/Hotel):* ${booking.alamatSaatIni || booking.alamatPengantaran || '-'}`,
+    `5. *ID Sosmed:* ${booking.idSosmed || '-'}`,
+    `6. *No. Telp:* ${booking.nomorWa || '-'}`,
+    `7. *No. Telp Darurat:* ${booking.noTelpDarurat || '-'}`,
+    `8. *Jadwal Mulai:* ${booking.jamTanggalMulai.replace('T', ' ')} WIB`,
+    `9. *Jadwal Selesai:* ${booking.jamTanggalSelesai.replace('T', ' ')} WIB`,
+    `10. *Lokasi Pengantaran:* ${booking.alamatPengantaran || poolLabel}`,
+    `11. *Lokasi Penjemputan:* ${booking.alamatPenjemputan || poolLabel}`,
+    `12. *Model Unit:* ${booking.snapshotNamaMotor}`,
+    `13. *Jumlah Helm:* ${booking.jumlahHelm || 2} Helm SNI`,
+    '',
     `*Paket / Durasi:* ${booking.labelDurasi}`,
-    `*Waktu Mulai:* ${booking.jamTanggalMulai.replace('T', ' ')} WIB`,
-    `*Waktu Selesai:* ${booking.jamTanggalSelesai.replace('T', ' ')} WIB`,
-    `*Area / Pool Terdekat:* ${poolLabel}`,
-    `*Lokasi Pengantaran:* ${booking.alamatPengantaran || poolLabel}`,
-    `*Lokasi Penjemputan:* ${booking.alamatPenjemputan || poolLabel}`,
     `*Estimasi Total Sewa:* ${formatRupiah(booking.totalHargaEstimasi)}`,
-    '*Fasilitas Termasuk:* 2 Helm SNI + Jas Hujan',
+    '*Fasilitas Termasuk:* Helm SNI + Jas Hujan + Phone Holder',
   ];
 
   if (booking.snapshotKodeUnit) {
@@ -278,6 +283,56 @@ export function generateDueReminderWhatsAppUrl(booking: BookingRecord): string {
 }
 
 /**
+ * 8b. Tautan WhatsApp: Pengingat Jatuh Tempo Real-Time Bergradasi (TASK-008: Aman, H-2 Jam, H-1 Jam, Overdue)
+ */
+export function generateGradedDueReminderWhatsAppUrl(
+  booking: BookingRecord,
+  urgency: 'aman' | 'h_2_jam' | 'h_1_jam' | 'overdue',
+  remainingOrLateText: string,
+  penaltyInfo?: { nominalDenda: number; dendaFormat: string; menitTelat: number }
+): string {
+  const customerPhone = normalizeWhatsAppNumber(booking.nomorWa);
+  const lokasiKembali = booking.alamatPenjemputan || (booking.pool === 'batu' ? 'Pool Batu (Diponegoro)' : 'Pool Malang (Dinoyo)');
+
+  let headerTitle = '*PENGINGAT JADWAL PENGEMBALIAN MOTOR — RYOKOURENT* ⏰';
+  let urgencyNote = '';
+
+  if (urgency === 'h_2_jam') {
+    headerTitle = '*PENGINGAT JATUH TEMPO SEWA (H-2 JAM) — RYOKOURENT* ⏳';
+    urgencyNote = `Waktu sewa Anda tersisa sekitar *${remainingOrLateText}* lagi. Mohon persiapkan unit atau beri kabar jika berencana memperpanjang masa sewa.`;
+  } else if (urgency === 'h_1_jam') {
+    headerTitle = '⚠️ *PERINGATAN SEWA AKAN BERAKHIR (< 1 JAM) — RYOKOURENT* ⚠️';
+    urgencyNote = `Perhatian: Masa sewa Anda tersisa *${remainingOrLateText}* lagi! Harap segera menuju lokasi pengembalian atau hubungi kami untuk konfirmasi perpanjangan agar terhindar dari denda toleransi (D-27).`;
+  } else if (urgency === 'overdue') {
+    headerTitle = '🚨 *ALERT TENGGAT WAKTU TERLEWATI (OVERDUE) — RYOKOURENT* 🚨';
+    const dendaStr = penaltyInfo && penaltyInfo.nominalDenda > 0
+      ? `Denda berjalan saat ini: *${penaltyInfo.dendaFormat}* (${penaltyInfo.menitTelat} menit terlambat).`
+      : 'Unit telah melewati batas toleransi pengembalian.';
+    urgencyNote = `PERHATIAN: Masa sewa Anda telah terlewat *${remainingOrLateText}* (${dendaStr}). Mohon segera serahkan unit ke petugas/pool atau segera konfirmasi ke kasir kami!`;
+  } else {
+    urgencyNote = `Waktu sewa Anda masih aktif (${remainingOrLateText} tersisa). Selamat menikmati perjalanan Anda bersama Ryokourent!`;
+  }
+
+  const lines = [
+    headerTitle,
+    `Halo Kak *${booking.nama}*, berikut konfirmasi status sewa armada motor Anda:`,
+    '',
+    `*No. Booking:* ${booking.noBooking}`,
+    `*Unit Motor:* ${booking.snapshotNamaMotor} (Kode: *${booking.snapshotKodeUnit}*)`,
+    `*Tenggat Waktu Kembali:* *${booking.jamTanggalSelesai.replace('T', ' ')} WIB*`,
+    `*Lokasi Pengembalian:* ${lokasiKembali}`,
+    '',
+    urgencyNote,
+    '',
+    'Jika membutuhkan penjemputan unit di lokasi atau perpanjangan sewa, silakan langsung balas pesan ini.',
+    'Terima kasih dan salam aman berkendara! 🛵💨',
+  ];
+
+  const message = lines.join('\n');
+  return `https://api.whatsapp.com/send?phone=${encodeURIComponent(customerPhone)}&text=${encodeURIComponent(message)}`;
+}
+
+/**
  * 9. Tautan WhatsApp: Notifikasi Unit Selesai Servis (Bagian 10 Baru)
  */
 export function generateServiceDoneWhatsAppUrl(service: ServiceRecord, adminPhone: string): string {
@@ -301,3 +356,36 @@ export function generateServiceDoneWhatsAppUrl(service: ServiceRecord, adminPhon
   const message = lines.join('\n');
   return `https://api.whatsapp.com/send?phone=${encodeURIComponent(targetPhone)}&text=${encodeURIComponent(message)}`;
 }
+
+/**
+ * 10. Tautan WhatsApp: Kirim Template Form Kosong 13 Poin ke Calon Pelanggan
+ */
+export function generateStandardBookingTemplateText(): string {
+  return `*FORM PEMESANAN SEWA MOTOR RYOKO RENT*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Silakan lengkapi data pemesanan di bawah ini:
+
+1. Nama :
+2. Alamat sesuai KTP :
+3. ID pendukung (SIM C/KTM/Paspor/NPWP) :
+4. Alamat saat ini (Rumah/Kos/Hotel) :
+5. ID sosmed (Instagram/TikTok/FB) :
+6. No telp :
+7. No telp darurat :
+8. Jadwal mulai (Tgl & Jam Ambil) :
+9. Jadwal selesai (Tgl & Jam Kembali) :
+10. Lokasi pengantaran :
+11. Lokasi penjemputan :
+12. Model unit :
+13. Jumlah helm (1 / 2 Helm) :
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+_Kirimkan format yang sudah diisi ke admin Ryoko Rent Malang & Batu_`;
+}
+
+export function generateEmptyBookingFormWhatsAppUrl(phone: string): string {
+  const targetPhone = normalizeWhatsAppNumber(phone);
+  const text = generateStandardBookingTemplateText();
+  return `https://api.whatsapp.com/send?phone=${encodeURIComponent(targetPhone)}&text=${encodeURIComponent(text)}`;
+}
+

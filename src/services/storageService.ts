@@ -33,6 +33,14 @@ export function loadDatabase(): RyokoDatabase {
       }
       return m;
     });
+    // Ensure Ridho booking is present if fresh
+    if (INITIAL_DATABASE.bookings) {
+      INITIAL_DATABASE.bookings.forEach(ib => {
+        if (!parsed.bookings.some(b => b.id === ib.id || b.noBooking === ib.noBooking)) {
+          parsed.bookings.unshift(ib);
+        }
+      });
+    }
     return parsed;
   } catch (error) {
     console.error('Failed to load database from LocalStorage:', error);

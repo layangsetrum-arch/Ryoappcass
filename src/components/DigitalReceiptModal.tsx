@@ -66,13 +66,18 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
       `---------------------------------------`,
       `👤 *Data Penyewa:*`,
       `Nama: ${booking.nama}`,
+      `Alamat KTP: ${booking.alamatKtp || '-'}`,
+      `ID Pendukung: ${booking.jenisIdPendukung || 'SIM C'}`,
+      `Alamat Saat Ini: ${booking.alamatSaatIni || booking.alamatPengantaran || '-'}`,
+      `ID Sosmed: ${booking.idSosmed || '-'}`,
       `WhatsApp: ${booking.nomorWa || '-'}`,
+      `Kontak Darurat: ${booking.noTelpDarurat || '-'}`,
       `---------------------------------------`,
       `🛵 *Rincian Kendaraan:*`,
       `Motor: ${booking.snapshotNamaMotor}`,
       `Kode Unit: ${booking.snapshotKodeUnit || unit?.kodeUnit || 'Belum ditetapkan'}`,
       `Nomor Plat: ${unit?.nomorPlat || 'N/A'}`,
-      `Kelengkapan: 2 Helm SNI + 2 Jas Hujan + STNK`,
+      `Kelengkapan: ${booking.jumlahHelm || 2} Helm SNI + 2 Jas Hujan + STNK`,
       `---------------------------------------`,
       `⏱️ *Durasi & Jadwal Sewa:*`,
       `Paket: ${booking.labelDurasi}`,
@@ -193,10 +198,30 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
               <div>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Informasi Penyewa
+                  Informasi Penyewa (13 Poin)
                 </span>
                 <p className="font-bold text-slate-800 text-sm mt-0.5">{booking.nama}</p>
                 <p className="text-slate-600 font-mono text-[11px]">{booking.nomorWa || '-'}</p>
+                {booking.alamatKtp && (
+                  <p className="text-[10px] text-slate-500">
+                    KTP: <span className="font-medium text-slate-700">{booking.alamatKtp}</span>
+                  </p>
+                )}
+                {booking.alamatSaatIni && (
+                  <p className="text-[10px] text-slate-500">
+                    Domisili: <span className="font-medium text-slate-700">{booking.alamatSaatIni}</span>
+                  </p>
+                )}
+                {booking.idSosmed && (
+                  <p className="text-[10px] text-cyan-700 font-mono">
+                    Sosmed: {booking.idSosmed}
+                  </p>
+                )}
+                {booking.noTelpDarurat && (
+                  <p className="text-[10px] text-amber-700 font-mono">
+                    Darurat: {booking.noTelpDarurat}
+                  </p>
+                )}
                 <p className="text-[10px] text-slate-500 mt-1">
                   Antar: <span className="font-medium text-slate-700">{booking.alamatPengantaran || (booking.pool === 'batu' ? 'Pool Batu' : 'Pool Malang')}</span>
                 </p>

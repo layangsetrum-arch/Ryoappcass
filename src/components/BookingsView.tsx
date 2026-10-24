@@ -12,7 +12,9 @@ import {
   generateBookingConfirmationWhatsAppUrl,
   generateApprovalNoticeToCustomerWhatsAppUrl,
   generateHandoverNoticeToCustomerWhatsAppUrl,
+  generateGradedDueReminderWhatsAppUrl,
 } from '../services/whatsappService';
+import { computeBookingCountdown } from '../utils/countdownHelper';
 import {
   Search,
   Plus,
@@ -53,7 +55,13 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
   const [activeStatusFilter, setActiveStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const currentEpoch = Math.floor(Date.now() / 1000);
+  const [currentEpoch, setCurrentEpoch] = useState<number>(() => Math.floor(Date.now() / 1000));
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentEpoch(Math.floor(Date.now() / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Filter bookings
   const filteredBookings = useMemo(() => {
@@ -256,13 +264,28 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                   {/* Customer Info */}
                   <div className="space-y-1">
-                    <span className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider">Penyewa</span>
+                    <span className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider">Penyewa & Kontak</span>
                     <p className="font-bold text-white text-sm">{b.nama}</p>
-                    <p className="text-slate-400 font-mono flex items-center gap-1">
+                    <p className="text-slate-300 font-mono flex items-center gap-1 text-[11px]">
                       <span>📱 {b.nomorWa || '-'}</span>
                     </p>
+                    {b.alamatSaatIni && (
+                      <p className="text-[11px] text-cyan-300">
+                        🏠 {b.alamatSaatIni}
+                      </p>
+                    )}
+                    {b.idSosmed && (
+                      <p className="text-[10px] text-slate-400 font-mono">
+                        Sosmed: {b.idSosmed}
+                      </p>
+                    )}
+                    {b.noTelpDarurat && (
+                      <p className="text-[10px] text-amber-400 font-mono">
+                        Darurat: {b.noTelpDarurat}
+                      </p>
+                    )}
                     <p className="text-[11px] text-slate-400">
-                      ID: <span className="text-slate-200 font-medium">{b.jenisIdPendukung}</span> (Tanpa NIK)
+                      ID: <span className="text-slate-200 font-medium">{b.jenisIdPendukung}</span>
                     </p>
                   </div>
 
@@ -284,6 +307,9 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                     <p className="text-[11px] text-slate-400">
                       Durasi: <strong className="text-emerald-400">{b.labelDurasi}</strong>
                     </p>
+                    <p className="text-[11px] text-slate-300">
+                      Fasilitas: <span className="text-emerald-300 font-medium">{b.jumlahHelm || 2} Helm SNI</span> + Jas Hujan
+                    </p>
                   </div>
 
                   {/* Schedule & Location */}
@@ -294,9 +320,15 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                       <span>{b.jamTanggalMulai.replace('T', ' ')} s/d {b.jamTanggalSelesai.replace('T', ' ')} WIB</span>
                     </p>
                     <p className="text-slate-400 flex items-center gap-1 text-[11px]">
-                      <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                      <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span>Antar: {b.alamatPengantaran || (b.pool === 'batu' ? 'Pool Batu' : 'Pool Malang')}</span>
                     </p>
+                    {b.alamatPenjemputan && (
+                      <p className="text-slate-400 flex items-center gap-1 text-[11px]">
+                        <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        <span>Jemput: {b.alamatPenjemputan}</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Tariff & Overtime Denda (D-27) */}
@@ -319,6 +351,43 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                     )}
                   </div>
                 </div>
+
+                {/* Real-Time Countdown Strip for Active Rentals (TASK-008) */}
+                {b.status === 'ryokou_disewa' && (() => {
+                  const info = computeBookingCountdown(b, motor, currentEpoch);
+                  const badge = info.urgencyBadge;
+                  return (
+                    <div className={`p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-2 text-xs ${
+                      info.urgency === 'overdue'
+                        ? 'bg-rose-950/40 border-rose-800/80 text-rose-300'
+                        : info.urgency === 'h_1_jam'
+                        ? 'bg-orange-950/40 border-orange-800/70 text-orange-300'
+                        : info.urgency === 'h_2_jam'
+                        ? 'bg-amber-950/30 border-amber-800/60 text-amber-300'
+                        : 'bg-slate-950/60 border-slate-800 text-emerald-400'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${badge.bg} ${badge.text} ${badge.border}`}>
+                          {badge.icon} {badge.label}
+                        </span>
+                        <span className="text-[11px] text-slate-300">
+                          {info.isOverdue ? 'Terlewat: ' : 'Sisa waktu sewa: '}
+                          <strong className="text-white">{info.humanText}</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold tracking-wider">
+                          {info.formattedCountdown}
+                        </span>
+                        {info.isOverdue && (
+                          <span className="font-bold text-[10px] text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-800">
+                            Denda: {info.penalty.dendaFormat}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* State Machine Action Strip */}
                 <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
@@ -343,16 +412,29 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                           if (b.status === 'ryokou_approved') {
                             waUrl = generateApprovalNoticeToCustomerWhatsAppUrl(b);
                           } else if (b.status === 'ryokou_disewa') {
-                            waUrl = generateHandoverNoticeToCustomerWhatsAppUrl(b);
+                            const info = computeBookingCountdown(b, motor, currentEpoch);
+                            const penaltyInfo = info.isOverdue
+                              ? {
+                                  nominalDenda: info.penalty.nominalDenda,
+                                  dendaFormat: info.penalty.dendaFormat,
+                                  menitTelat: info.penalty.menitTelat,
+                                }
+                              : undefined;
+                            waUrl = generateGradedDueReminderWhatsAppUrl(b, info.urgency, info.humanText, penaltyInfo);
                           } else {
                             waUrl = generateBookingConfirmationWhatsAppUrl(b, b.nomorWa);
                           }
                           window.open(waUrl, '_blank');
                         }}
-                        className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1 transition"
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition ${
+                          b.status === 'ryokou_disewa'
+                            ? 'bg-amber-950/80 hover:bg-amber-900/80 border border-amber-700/60 text-amber-300 font-semibold'
+                            : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                        }`}
+                        title={b.status === 'ryokou_disewa' ? 'Kirim WhatsApp pengingat jatuh tempo / alert' : 'Kirim WhatsApp ke penyewa'}
                       >
                         <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
-                        <span>WA Penyewa</span>
+                        <span>{b.status === 'ryokou_disewa' ? 'WA Alert Jatuh Tempo' : 'WA Penyewa'}</span>
                       </button>
                     )}
 
