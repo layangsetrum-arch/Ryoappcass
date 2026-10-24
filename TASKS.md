@@ -13,6 +13,7 @@ Definisi task. **Status task tidak ditulis di sini**; status ada di `SESSION_STA
 * **FASE 4: Integrasi Wizard Recovery ZLCE Studio & Verifikasi Akhir** (`TASK-005`)
 * **FASE 5: Panel Manajemen User & Role-Based Access Control 4 Tingkat** (`TASK-006`)
 * **FASE 6: Kwitansi Paperless, Countdown Real-Time & Armada Dinamis** (`TASK-007`, `TASK-008`, `TASK-009`)
+* **FASE 7: Review Claude, README Resmi, & Integrasi Kolaborasi Eksternal** (`TASK-010`, `TASK-011`, `TASK-012`, `TASK-013`, `TASK-014`)
 
 ---
 
@@ -159,3 +160,81 @@ Definisi task. **Status task tidak ditulis di sini**; status ada di `SESSION_STA
   2. Data tersimpan persisten di LocalStorage dan langsung muncul di opsi booking baru.
 * **Test Case:** Create/Edit motor model
 * **Metode Verifikasi:** Jalankan `python3 scripts/zlce/zlce-check.py .` dan `npm run lint`.
+
+---
+
+### TASK-010: Panduan Review Kode Claude & Prompt Instruksi Unggah Berkas
+* **Fase:** FASE 7
+* **Deskripsi:** Menyusun dokumen panduan pengunggahan berkas (`docs/CLAUDE_REVIEW_GUIDE.md`) dan berkas prompt siap salin (`docs/CLAUDE_PROMPT.md`) untuk melakukan audit kode mendalam oleh model Anthropic Claude (Sonnet 3.5 / 3.7 / Opus) yang mencakup kepatuhan 13 field form booking, state machine 5 status, jeda 60 menit buffer, proteksi NIK, dan kesiapan PWA Android.
+* **Dependensi:** `TASK-009`
+* **File:** `docs/CLAUDE_REVIEW_GUIDE.md`, `docs/CLAUDE_PROMPT.md`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Panduan memuat daftar tier berkas yang wajib diunggah beserta estimasi token.
+  2. Prompt Claude mencakup 6 fokus tinjauan kode dan format output terstruktur.
+* **Test Case:** Review prompt readiness
+* **Metode Verifikasi:** Verifikasi kelengkapan berkas `docs/CLAUDE_REVIEW_GUIDE.md` & `docs/CLAUDE_PROMPT.md`.
+
+---
+
+### TASK-011: Berkas Dokumentasi Resmi README.md Proyek RyokoRent
+* **Fase:** FASE 7
+* **Deskripsi:** Mengganti file README upstream dengan dokumentasi resmi dan komprehensif untuk RyokoRent Android APK, mencakup fitur 13-field booking, state machine, 60-menit turnaround buffer, tarif 1 bulan, RBAC 4 tingkat, kwitansi paperless, hitung mundur real-time, panduan instalasi PWA di Android Chrome, dan diagram struktur repositori.
+* **Dependensi:** `TASK-010`
+* **File:** `README.md`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. `README.md` mendokumentasikan 100% kapabilitas fungsional aplikasi RyokoRent.
+  2. Menyertakan tabel 13 field booking, panduan setup lokal, dan langkah instalasi PWA Android.
+* **Test Case:** Project documentation audit
+* **Metode Verifikasi:** Periksa isi `README.md` dan kompilasi build.
+
+---
+
+### TASK-012: Kerangka Pemeriksaan & Rencana Penyesuaian Tindak Lanjut Hasil Review
+* **Fase:** FASE 7
+* **Deskripsi:** Menyusun rencana aksi dan tabel log penyesuaian hasil review (`docs/REVIEW_ACTION_PLAN.md`) dengan rubrik triase prioritas (P0 Kritis, P1 Operasional, P2 UX), matriks evaluasi mandiri awal, dan prosedur eksekusi kode terstandarisasi.
+* **Dependensi:** `TASK-011`
+* **File:** `docs/REVIEW_ACTION_PLAN.md`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Dokumen triase menyediakan rubrik klasifikasi severity P0, P1, P2.
+  2. Memuat tabel log penyesuaian yang siap mencatat hasil temuan review Claude.
+* **Test Case:** Action plan readiness
+* **Metode Verifikasi:** Verifikasi kelengkapan `docs/REVIEW_ACTION_PLAN.md`.
+
+---
+
+### TASK-013: Arsitektur & Layanan Sinkronisasi Kolaborasi Google Sheets
+* **Fase:** FASE 7
+* **Deskripsi:** Mengimplementasikan modul layanan kolaborasi Google Sheets (`src/services/googleSheetsService.ts`) dan dokumentasi integrasi (`docs/GOOGLE_SHEETS_INTEGRATION.md`) untuk pemetaan 13 field form booking ke baris spreadsheet 26 kolom (termasuk status review admin, opsi operasional, dan aksi disetujui), fungsi ekspor CSV UTF-8 instan, antrean sinkronisasi offline, serta integrasi input webhook di panel Pengaturan.
+* **Dependensi:** `TASK-012`
+* **File:** `src/services/googleSheetsService.ts`, `docs/GOOGLE_SHEETS_INTEGRATION.md`, `src/types/ryoko.ts`, `src/components/SettingsView.tsx`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Format 26 kolom Google Sheets mencakup 13 field standar + kolom Review, Opsi, Aksi.
+  2. Tombol unduh CSV dan sinkronisasi webhook tersedia di menu Pengaturan.
+  3. Mendukung antrean lokal di LocalStorage saat offline.
+* **Test Case:** CSV export & sheets row mapping
+* **Metode Verifikasi:** Jalankan `npm run lint` dan uji fungsi generator baris spreadsheet.
+
+---
+
+### TASK-014: Sistem Alert Pengembalian via Bot Telegram Admin & Aksi Interaktif
+* **Fase:** FASE 7
+* **Deskripsi:** Mengimplementasikan modul layanan Bot Telegram (`src/services/telegramBotService.ts`) dan dokumentasi (`docs/TELEGRAM_BOT_INTEGRATION.md`) untuk mengirimkan notifikasi jatuh tempo (H-2 Jam, H-1 Jam, Overdue) langsung ke Telegram Admin, dilengkapi 4 tombol inline action (Review Detail, Setujui Selesai, Perpanjang Sewa, Kenakan Denda), integrasi tombol Bot TG di CountdownAlertBanner, dan panel konfigurasi token di Pengaturan.
+* **Dependensi:** `TASK-013`
+* **File:** `src/services/telegramBotService.ts`, `docs/TELEGRAM_BOT_INTEGRATION.md`, `src/components/CountdownAlertBanner.tsx`, `src/components/SettingsView.tsx`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Template pesan Telegram memformat data penyewa, unit motor, sisa waktu, dan denda estimasi.
+  2. Tersedia 4 tombol aksi inline interaktif Telegram dengan callback data terdefinisi.
+  3. Pengaturan menyediakan input Token & Chat ID dengan fitur uji coba koneksi dan alert contoh.
+  4. Banner hitung mundur memiliki tombol pemicu notifikasi Telegram instan.
+* **Test Case:** Telegram alert generation & callback handler
+* **Metode Verifikasi:** Jalankan `npm run lint` dan `python3 scripts/zlce/zlce-check.py .`.

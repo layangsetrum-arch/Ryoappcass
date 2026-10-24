@@ -21,7 +21,9 @@ import {
   ShieldAlert,
   Flame,
   Hourglass,
+  Bot,
 } from 'lucide-react';
+import { sendTelegramReturnAlert } from '../services/telegramBotService';
 
 interface CountdownAlertBannerProps {
   db: RyokoDatabase;
@@ -41,6 +43,7 @@ export const CountdownAlertBanner: React.FC<CountdownAlertBannerProps> = ({
   // Live ticking state (epoch in seconds)
   const [nowEpoch, setNowEpoch] = useState<number>(() => Math.floor(Date.now() / 1000));
   const [filterUrgency, setFilterUrgency] = useState<'all' | CountdownUrgencyLevel>('all');
+  const [telegramAlertMsg, setTelegramAlertMsg] = useState<string>('');
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -115,6 +118,21 @@ export const CountdownAlertBanner: React.FC<CountdownAlertBannerProps> = ({
       penaltyInfo
     );
     window.open(url, '_blank');
+  };
+
+  const handleSendTelegramAlert = async (e: React.MouseEvent, booking: BookingRecord, info: CountdownInfo) => {
+    e.stopPropagation();
+    const motor = db.motors.find(m => m.id === booking.motorId) || db.motors[0];
+    const res = await sendTelegramReturnAlert(
+      booking,
+      motor,
+      info.urgency,
+      db.settings.telegramBotToken,
+      db.settings.telegramAdminChatId,
+      info.penalty.nominalDenda
+    );
+    setTelegramAlertMsg(res.message);
+    setTimeout(() => setTelegramAlertMsg(''), 5000);
   };
 
   if (activeRentals.length === 0) {
@@ -239,6 +257,13 @@ export const CountdownAlertBanner: React.FC<CountdownAlertBannerProps> = ({
         </button>
       </div>
 
+      {telegramAlertMsg && (
+        <div className="p-3 rounded-xl bg-sky-950/80 border border-sky-700/80 text-sky-200 text-xs flex items-center gap-2 animate-fadeIn">
+          <Bot className="w-4 h-4 text-sky-400 shrink-0" />
+          <span>{telegramAlertMsg}</span>
+        </div>
+      )}
+
       {/* Grid of countdown cards */}
       <div className={`grid gap-3 ${compact ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
         {sortedAndFilteredList.map(({ booking, info }) => {
@@ -356,11 +381,21 @@ export const CountdownAlertBanner: React.FC<CountdownAlertBannerProps> = ({
                   <MessageCircle className="w-3.5 h-3.5" />
                   <span>
                     {info.urgency === 'overdue'
-                      ? 'WA Alert Overdue'
+                      ? 'WA Overdue'
                       : info.urgency === 'h_1_jam'
-                      ? 'WA Alert H-1'
-                      : 'WA Pengingat'}
+                      ? 'WA H-1'
+                      : 'WA Ingatkan'}
                   </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleSendTelegramAlert(e, booking, info)}
+                  className="px-2.5 py-1.5 rounded-lg bg-sky-950 hover:bg-sky-900 border border-sky-700/80 text-sky-300 text-xs font-semibold flex items-center gap-1 transition active:scale-95"
+                  title="Kirim alert jatuh tempo ke Telegram Admin dengan tombol review & aksi"
+                >
+                  <Bot className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Bot TG</span>
                 </button>
 
                 {onSelectBooking && (

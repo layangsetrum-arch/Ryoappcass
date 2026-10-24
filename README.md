@@ -1,282 +1,229 @@
 <div align="center">
 
-# ZLCE Studio
+# 🛵 RyokoRent Android APK
 
-**Kit dan aplikasi web untuk menjaga konteks proyek tetap utuh saat bekerja dengan AI coding agent, lewat berkas status terstruktur dan protokol serah terima.**
+**Aplikasi Operasional & Administrasi Rental Sepeda Motor Malang & Batu**  
+*Berbasis Progressive Web App (PWA) Standalone, Offline-First LocalStorage, Pelacakan Armada, Kwitansi Paperless, dan Otomasi WhatsApp.*
 
-*Zero-Loss Context Engineering: a kit and web workbench that keeps AI coding sessions consistent across context resets, using structured state files and a handover protocol.*
+[![Platform](https://img.shields.io/badge/Platform-Android%20APK%20%2F%20PWA-3DDC84.svg?logo=android&logoColor=white)](#instalasi-pwa-android)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB.svg?logo=react&logoColor=black)](#tech-stack)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?logo=typescript&logoColor=white)](#tech-stack)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC.svg?logo=tailwind-css&logoColor=white)](#tech-stack)
+[![Vite](https://img.shields.io/badge/Vite-8.x-646CFF.svg?logo=vite&logoColor=white)](#tech-stack)
+[![ZLCE](https://img.shields.io/badge/Metodologi-ZLCE%20v3.2.2-informational.svg)](BLUEPRINT.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[![CI](https://github.com/acimau99-netizen/ZLCEv3.2.2/actions/workflows/ci.yml/badge.svg)](https://github.com/acimau99-netizen/ZLCEv3.2.2)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D20.19-339933.svg)](#prasyarat)
-[![Version](https://img.shields.io/badge/version-3.2.2-informational.svg)](CHANGELOG.md)
-[![Kit ZLCE: 14/14 Lulus](https://img.shields.io/badge/Kit%20ZLCE%20v3.2.2-14%2F14%20LULUS-success.svg)](data/FEEDBACK_ZLCE_EVALUASI.md)
+[Fitur Utama](#-fitur-utama) • [Form Booking 13 Field](#-template-booking-13-field) • [Panduan Instalasi](#-panduan-instalasi--menjalankan) • [Integrasi Eksternal](#-integrasi-eksternal) • [Struktur Proyek](#-struktur-proyek)
 
-[Mulai Cepat](#mulai-cepat) · [Dokumentasi Lengkap](docs/USAGE.md) · [Laporkan Masalah](https://github.com/acimau99-netizen/ZLCEv3.2.2/issues)
+---
 
 </div>
 
----
+## 📖 Tentang RyokoRent
 
-## Daftar Isi
+**RyokoRent** adalah aplikasi sistem operasi rental sepeda motor modern yang dirancang khusus untuk memenuhi kebutuhan bisnis sewa motor di kawasan wisata **Kota Malang dan Kota Batu, Jawa Timur**. 
 
-- [Apa itu ZLCE?](#apa-itu-zlce)
-- [Fitur Utama](#fitur-utama)
-- [Mulai Cepat](#mulai-cepat)
-  - [Prasyarat](#prasyarat)
-  - [A. Pakai Kit dengan AI Anda](#a-pakai-kit-dengan-ai-anda)
-  - [B. Jalankan ZLCE Studio (Web)](#b-jalankan-zlce-studio-web)
-  - [C. Pakai Skrip CLI](#c-pakai-skrip-cli)
-- [Cara Kerja & 4 Gerbang Kualitas](#cara-kerja--4-gerbang-kualitas)
-- [Struktur Repositori](#struktur-repositori)
-- [Hasil Pengujian](#hasil-pengujian)
-- [Batasan yang Diketahui](#batasan-yang-diketahui)
-- [Privasi dan Keamanan](#privasi-dan-keamanan)
-- [Kontribusi](#kontribusi)
-- [Lisensi](#lisensi)
+Aplikasi ini beroperasi dengan prinsip **Offline-First**, memungkinkan pemilik rental, operator kantor, mekanik garasi, hingga kurir lapangan tetap dapat menginput pemesanan, mengecek ketersediaan unit motor, melakukan serah terima di hotel/stasiun, serta melacak armada bahkan saat jaringan internet lambat atau terputus.
 
 ---
 
-## Apa itu ZLCE?
+## ✨ Fitur Utama
 
-Saat mengerjakan proyek perangkat lunak bersama AI coding assistant, konteks seringkali hilang: sesi baru tidak mengetahui keputusan arsitektur sebelumnya, kuota token obrolan habis di tengah jalan, atau AI mengubah kode di luar yang diminta.
+### 1. 📋 Template Booking Standar 13 Field & Smart Chat Parser
+- Formulir booking rapi mencakup 13 field identitas dan operasional lengkap tanpa kompromi.
+- **Smart WhatsApp Chat Parser**: Memungkinkan operator menempelkan (*paste*) pesan format booking acak langsung dari chat WhatsApp pelanggan, lalu secara otomatis mengekstrak data ke form dalam 1 detik.
+- Tombol **1-Klik Salin Format Kosong** siap kirim ke calon penyewa di WhatsApp.
 
-ZLCE mengatasi masalah tersebut dengan satu prinsip: **status proyek ditulis di berkas, bukan diandalkan pada memori obrolan.**
+### 2. 🔄 State Machine Penyewaan 5 Status Terproteksi
+Alur transaksi mengikuti siklus hidup operasional rental yang ketat:
+1. `ryokou_booking` (Pemesanan Baru): Menunggu verifikasi admin dan penguncian unit fisik motor garasi.
+2. `ryokou_approved` (Disetujui): Unit fisik telah dikunci permanen, menunggu jadwal serah terima oleh kurir atau tamu datang ke pool.
+3. `ryokou_disewa` (Sedang Berjalan): Motor telah diserahterimakan ke penyewa. Dilindungi proteksi anti-hapus (D-20) untuk mencegah kehilangan catatan audit.
+4. `ryokou_diservis` (Diservis): Unit mengalami kendala teknis atau masuk jadwal perawatan berkala di bengkel.
+5. `ryokou_selesai` (Selesai): Unit telah diterima kembali di Pool Malang / Pool Batu, denda keterlambatan terkalkulasi otomatis.
 
-- **`SESSION_STATE.md`** adalah sumber kebenaran tunggal (*Single Source of Truth*): matriks task, catatan serah terima, dan *write-ahead log* (WAL) untuk langkah yang sedang berjalan.
-- **Empat Gerbang Persetujuan (*Quality Gates*)** menahan AI agar tidak menulis kode sebelum spesifikasi disetujui pengguna.
-- **Protokol Handover dan Recovery** memungkinkan sesi baru, atau AI lain, melanjutkan pekerjaan tepat dari titik terakhir, termasuk saat sesi terputus (*session crash*).
-- **Task bersifat atomik**: tepat satu task berstatus `IN_PROGRESS` pada satu waktu, dan status `DONE` hanya sah bila disertai bukti verifikasi riil.
+### 3. ⏱️ Turnaround Buffer 60 Menit & Anti Double-Booking
+- Algoritma `isUnitAvailableForRange` secara cerdas memberikan jeda waktu **60 menit** sebelum waktu sewa dimulai dan sesudah waktu sewa berakhir.
+- Jeda ini dialokasikan untuk pembersihan motor, inspeksi fisik, pengisian bahan bakar, dan pengecekan kelengkapan 2 helm SNI.
 
-Kit ini kompatibel dengan semua AI coding agent modern yang dapat membaca teks/berkas, seperti Google AI Studio, Claude Code, Cursor, Windsurf, ChatGPT, dan GitHub Copilot.
+### 4. 💰 Katalog Tarif Multi-Tier Dinamis (Termasuk Sewa 1 Bulan)
+- Mendukung opsi **ShortRent jam** (3 Jam, 6 Jam, 9 Jam, 12 Jam).
+- Mendukung opsi **Sewa Harian** (1 Hari / 24 Jam, 1 Minggu / 7 Hari, dan **1 Bulan / 30 Hari**).
+- Tombol kalkulasi tanggal selesai otomatis $+30$ hari saat paket 1 bulan dipilih.
+
+### 5. 🔧 Panel Catatan Servis Rutin 7 Kategori
+Pencatatan riwayat perawatan berkala armada garasi dengan 7 kategori spesifik:
+1. Ganti Oli Mesin
+2. Ganti Gear Oli / Gardan
+3. Ganti Kampas Rem (Depan/Belakang)
+4. Ganti Ban (Depan/Belakang)
+5. Servis CVT Part (Roller, V-Belt, Slider)
+6. Baterai Kering / Aki
+7. Servis Kecelakaan / Insiden
+
+### 6. 🛵 Pelacakan Posisi Armada Garasi & Status Kurir
+Setiap unit fisik motor terpantau lokasinya secara transparan:
+- `parkir`: Pool Malang (Jl. MT Haryono Dinoyo) atau Pool Batu (Jl. Diponegoro Sisir).
+- `kurir`: **Sedang Dipakai Kurir** (disertai nama kurir penanggung jawab operasional).
+- `disewa`: Bersama penyewa (nama penyewa, nomor booking, tenggat kembali).
+- `servis`: Di bengkel rekanan (nama bengkel, kontak mekanik, estimasi selesai).
+
+### 7. 👥 Role-Based Access Control (RBAC) 4 Tingkat
+- **Administrator**: Hak akses penuh seluruh sistem (finansial, user, armada, pengaturan).
+- **Admin Custom**: Hak akses granular yang dapat disesuaikan per-user (bisa menyembunyikan laporan omset).
+- **Operator**: Khusus operasional harian (booking, tracking, servis, tanpa akses ekspor keuangan).
+- **Kurir**: Portal ringkas satu layar khusus serah terima & penjemputan unit, tombol chat WA tamu 1-klik, tanpa informasi omset bisnis.
+
+### 8. 🧾 Kwitansi Digital Paperless & Salin Teks Ringkasan Kasir
+- Modal kwitansi digital resmi Ryoko Rent tanpa boros kertas.
+- Cetak / Simpan langsung ke format **PDF**.
+- Tombol **Salin Teks Ringkasan Nota Kasir** untuk dikirim instan via chat WhatsApp.
+- Rincian Berita Acara Serah Terima (BAST: 2 helm SNI, 2 jas hujan, bensin, deposit).
+
+### 9. ⏰ Countdown Pengembalian Real-Time & Kalkulasi Denda Live
+- Live ticker hitung mundur waktu sewa aktif.
+- 4 tingkat urgensi visual: **Aman (Hijau)**, **H-2 Jam (Kuning)**, **H-1 Jam (Oranye)**, **Overdue/Terlambat (Merah Berkedip)**.
+- Rumus denda keterlambatan bertingkat (*step-up*) untuk paket jam, serta denda harian per jam untuk sewa harian/bulanan dengan toleransi 60 menit.
 
 ---
 
-## Fitur Utama
+## 📝 Template Booking 13 Field
 
-| Komponen | Isi & Kemampuan |
-| :--- | :--- |
-| **Kit Kontrol** | Prompt inisiasi ([`LANDING_PROMPT.md`](LANDING_PROMPT.md)), prompt serah terima ([`HANDOVER_PROMPT.md`](HANDOVER_PROMPT.md)), 9 template dokumen kontrol ([`templates/`](templates/)), bundel mandiri ([`ZLCE_KIT_SINGLE.md`](ZLCE_KIT_SINGLE.md)), dan profil domain booking. |
-| **Studio (Web)** | Editor visual `SESSION_STATE` dengan sinkronisasi formulir dan Markdown, validator aturan real-time, wizard recovery Kasus A–D, triase revisi R1–R7, kalkulator estimasi token, tutorial interaktif, dan generator bundel kit. |
-| **CLI & Diagnostik** | `zlce-check.py` (validasi integritas state), `zlce-snapshot.sh` (snapshot status git dan WAL), `zlce-collect.py` (kolektor diagnostik bertopeng rahasia). |
+Format standar transaksi pemesanan unit RyokoRent:
 
-Dua mode proyek yang didukung:
-- **Mode LITE** (*Default / Rekomendasi*): 4 berkas kontrol inti (`BLUEPRINT`, `TASKS`, `SESSION_STATE`, `HANDOVER`) untuk proyek di bawah ~15 task.
-- **Mode FULL**: 10 dokumen kontrol lengkap untuk sistem besar atau multi-service.
+| No | Nama Field | Deskripsi & Contoh |
+| :-: | :--- | :--- |
+| 1 | **Nama Penyewa** | Nama lengkap sesuai kartu identitas (mis. *Ridho berkati*) |
+| 2 | **Alamat Sesuai KTP** | Domisili asal penyewa (mis. *JL. Pek raya harmoni II*) |
+| 3 | **ID Pendukung** | SIM C, KTM Mahasiswa, NPWP, Paspor, atau BPJS |
+| 4 | **Alamat Saat Ini** | Lokasi tinggal selama di Malang/Batu (Rumah, Kos, atau Hotel/Apartemen) |
+| 5 | **ID Sosial Media** | Akun Instagram, TikTok, atau Facebook (mis. *@ridhoxw*) |
+| 6 | **Nomor Telepon / WA** | Nomor telepon aktif WhatsApp (mis. *085845595139*) |
+| 7 | **Nomor Telepon Darurat** | Kontak keluarga / kerabat yang bisa dihubungi jika darurat |
+| 8 | **Jadwal Mulai** | Tanggal & jam pengambilan unit (YYYY-MM-DD HH:mm) |
+| 9 | **Jadwal Selesai** | Tanggal & jam pengembalian unit (YYYY-MM-DD HH:mm) |
+| 10 | **Lokasi Pengantaran** | Titik temu antar unit (mis. *Apartemen Begawan / Stasiun Malang*) |
+| 11 | **Lokasi Penjemputan** | Titik temu pengembalian unit oleh kurir / pool |
+| 12 | **Model Unit Motor** | Tipe motor yang disewa (Scoopy, NMAX, CRF 150L, Fazzio, dll.) |
+| 13 | **Jumlah Helm SNI** | Jumlah helm yang dipinjamkan (1 atau 2 helm) |
 
 ---
 
-## Mulai Cepat
+## 🔌 Integrasi Eksternal
+
+### A. WhatsApp Messaging Gateway
+- URL format standar `https://api.whatsapp.com/send?phone=...&text=...` berstandar UTF-8.
+- 6 template pesan otomatis:
+  1. Konfirmasi Booking Baru
+  2. Surat Tugas Pengantaran Kurir Lapangan
+  3. Tagihan Invoice Sewa Bulanan (1 Bulan)
+  4. Pengingat Jatuh Tempo Pengembalian Ramah (H-2 Jam)
+  5. Kwitansi Pengembalian & Denda Keterlambatan
+  6. Notifikasi Unit Selesai Servis dari Bengkel
+
+### B. Google Sheets Collaboration (`src/services/googleSheetsService.ts`)
+- Ekspor seluruh transaksi 13 field langsung ke **CSV** atau **Google Apps Script Webhook**.
+- Alur review & opsi operasional di spreadsheet:
+  - Kolom **Status Review**: `PENDING_REVIEW` | `APPROVED` | `REJECTED` | `NEED_DOCS`
+  - Kolom **Opsi Tindak Lanjut**: `Siapkan Unit` | `Tugaskan Kurir` | `Kirim Tagihan DP` | `Jadwalkan Servis`
+  - Kolom **Aksi Eksekusi**: Status persetujuan final yang dicatat otomatis.
+
+### C. Telegram Bot Return Alert (`src/services/telegramBotService.ts`)
+- Bot notifikasi jatuh tempo otomatis ke grup/channel Telegram Admin & Operator.
+- Notifikasi H-2 Jam, H-1 Jam, dan Keterlambatan (*Overdue*).
+- Tombol aksi inline Telegram (*Inline Keyboard*):
+  - `[ 🔍 Review Detail ]`
+  - `[ ✅ Setujui Selesai ]`
+  - `[ ⏳ Perpanjang Sewa ]`
+  - `[ ⚠️ Tagih Denda ]`
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework Frontend:** React 19 + TypeScript
+- **Bundler:** Vite 8
+- **Styling:** Tailwind CSS v4 + Motion
+- **Ikonografi:** Lucide React
+- **PWA Engine:** `vite-plugin-pwa` + Web App Manifest
+- **Penyimpanan Data:** Browser LocalStorage (`ryokourent_db_v1`) + Export/Import JSON
+- **Metodologi Pengembangan:** Zero-Loss Context Engineering (ZLCE) v3.2.2
+
+---
+
+## 🚀 Panduan Instalasi & Menjalankan
 
 ### Prasyarat
+- Node.js `>= 20.19.0` (disarankan Node.js 22 LTS)
+- npm atau bun
 
-| Komponen | Kebutuhan Lingkungan |
-| :--- | :--- |
-| **Studio (Web)** | Node.js `>=20.19.0` (direkomendasikan Node.js 22 LTS), npm |
-| **Skrip CLI** | Python 3.10+, bash, git (di Windows: gunakan WSL atau Git Bash) |
-| **Kit Saja** | Cukup AI assistant yang mendukung input teks atau unggah berkas |
-
-### A. Pakai Kit dengan AI Anda
-
-1. **Pilih mode**: **LITE** (4 berkas) atau **FULL** (10 berkas).
-2. **Isi parameter** di [`LANDING_PROMPT.md`](LANDING_PROMPT.md) (Nama Proyek, Aksi `BARU`/`RESTRUKTURISASI`, Tech Stack, Kebutuhan Inti).
-3. **Mulai sesi AI**:
-   - Jika AI mendukung banyak lampiran (mis. Cursor/Windsurf/Claude Project): lampirkan folder [`templates/`](templates/) lalu tempel prompt.
-   - Jika AI berupa chat web prompt tunggal (mis. ChatGPT/Claude web): lampirkan satu berkas [`ZLCE_KIT_SINGLE.md`](ZLCE_KIT_SINGLE.md).
-4. **Persetujuan Gerbang 1**: AI akan menyusun `BLUEPRINT.md` lalu **berhenti**. Periksa draf tersebut, lalu berikan konfirmasi:
-   > *"Setujui Gerbang 1 (BLUEPRINT.md). Lanjutkan ke gerbang berikutnya."*
-
-Untuk melanjutkan sesi atau berganti AI, gunakan [`HANDOVER_PROMPT.md`](HANDOVER_PROMPT.md) bersama `SESSION_STATE.md`.
-
-| Situasi Kerja | Berkas & Perintah |
-| :--- | :--- |
-| **Proyek baru** | `LANDING_PROMPT.md` (Aksi: `BARU`) |
-| **Merapikan proyek lama** | `LANDING_PROMPT.md` (Aksi: `RESTRUKTURISASI`); AI dilarang mengubah kode sebelum audit selesai |
-| **Lanjut sesi / pindah AI** | `HANDOVER_PROMPT.md` + `SESSION_STATE.md` |
-| **Sesi terputus di tengah jalan** | `bash scripts/zlce/zlce-snapshot.sh --diff`, atau buka tab **Recovery** di Studio |
-
-### B. Jalankan ZLCE Studio (Web)
-
+### Langkah Menjalankan di Lokal:
 ```bash
-git clone https://github.com/acimau99-netizen/ZLCEv3.2.2.git
-cd ZLCEv3.2.2
-npm ci
+# 1. Klon repositori
+git clone https://github.com/kepekmalang-cell/RyoAPPkepek.git
+cd RyoAPPkepek
+
+# 2. Pasang dependensi
+npm install
+
+# 3. Jalankan server pengembangan lokal
 npm run dev
 ```
+Buka browser di alamat: `http://localhost:3000`
 
-Buka peramban di: <http://localhost:3000>
-
-Untuk build produksi:
+### Pengujian & Build Produksi:
 ```bash
-npm run build     # keluaran di folder dist/
-npm run preview   # uji pratinjau lokal build produksi
+# Uji kompilasi TypeScript
+npm run lint
+
+# Buat bundel produksi PWA
+npm run build
+
+# Validasi integritas dokumen ZLCE
+python3 scripts/zlce/zlce-check.py . --no-git
 ```
-
-### C. Pakai Skrip CLI
-
-Uji langsung contoh berkas yang disertakan tanpa konfigurasi git:
-```bash
-python3 scripts/zlce/zlce-check.py --state examples/SESSION_STATE.example.md --no-git
-# KELUARAN: OK (0 error, 1 warn, 3 task)
-```
-
-Untuk proyek Anda sendiri, salin folder `scripts/zlce/` ke direktori proyek Anda:
-```bash
-python3 scripts/zlce/zlce-check.py .          # validasi SESSION_STATE.md
-python3 scripts/zlce/zlce-check.py . --strict # anggap warning sebagai error
-bash scripts/zlce/zlce-snapshot.sh --diff     # ambil snapshot git dan WAL untuk recovery
-```
-
-> [!NOTE]
-> Berkas `scripts/zlce-check.py`, `scripts/zlce-snapshot.sh`, dan `scripts/zlce-collect.py` di folder luar `scripts/` adalah wrapper tipis yang otomatis meneruskan argumen ke skrip kanonik di `scripts/zlce/`.
 
 ---
 
-## Cara Kerja & 4 Gerbang Kualitas
+## 📱 Instalasi PWA Android (Mode APK Standalone)
 
-```text
-Gerbang 1  BLUEPRINT.md                 → Diperiksa & disetujui pengguna
-Gerbang 2  ARCHITECTURE + DATA_MODEL    → Diperiksa & disetujui pengguna (khusus mode FULL)
-Gerbang 3  TASKS.md + TESTING.md        → Diperiksa & disetujui pengguna
-Gerbang 4  SESSION_STATE + AI_WORKFLOW  → Eksekusi tugas atomik dimulai
-```
-
-Saat eksekusi berjalan, setiap perubahan status dicatat pada matriks task dan blok WAL (*Write-Ahead Log*) **sebelum** modifikasi kode dilakukan. Jika sesi terputus, AI membaca blok WAL, membandingkannya dengan status git, dan menentukan protokol pemulihan:
-
-| Kasus | Kondisi Pemulihan | Prosedur |
-| :-: | :--- | :--- |
-| **A** | Working tree bersih | Melanjutkan langkah pertama task aktif yang tercatat di WAL. |
-| **B** | Diff uncommitted sesuai WAL | Mempertahankan perubahan, memverifikasi hasil, lalu commit. |
-| **C** | Commit ada di git log namun belum di state | Sinkronisasi `SESSION_STATE.md` dengan log git terbaru. |
-| **D** | Perubahan di luar daftar berkas WAL | Menahan modifikasi, task dialihkan ke `BLOCKED` untuk persetujuan pengguna. |
-
-Panduan detail alur kerja operasional dan triase revisi: [`docs/USAGE.md`](docs/USAGE.md).
+Aplikasi dapat dipasang langsung pada perangkat Android tanpa Google Play Store:
+1. Buka peramban **Google Chrome** di perangkat smartphone Android Anda.
+2. Akses tautan web aplikasi RyokoRent.
+3. Klik tombol **"Pasang APK"** di pojok kanan atas, atau buka menu Chrome (titik tiga `⋮`) lalu pilih **"Tambahkan ke Layar Utama" (Add to Home Screen)** / **"Install App"**.
+4. Ikon **RyokoRent** akan muncul di app drawer Android Anda dan dapat dijalankan dengan tampilan layar penuh (*standalone mobile app*).
 
 ---
 
-## Struktur Repositori
-
-<details open>
-<summary><b>Tampilkan Struktur Berkas</b></summary>
+## 📁 Struktur Proyek
 
 ```text
 .
-├── LANDING_PROMPT.md          # Prompt inisiasi proyek baru / restrukturisasi
-├── HANDOVER_PROMPT.md         # Prompt serah terima dan protokol recovery
-├── ZLCE_KIT_SINGLE.md         # Bundel mandiri 1 berkas (kompatibel AI chat web)
-├── templates/                 # 9 template dokumen kontrol + subfolder profiles/
-│   ├── BLUEPRINT.template.md      # Gerbang 1: Visi, lingkup, kriteria selesai
-│   ├── ARCHITECTURE.template.md   # Gerbang 2: Arsitektur & batasan sistem
-│   ├── DATA_MODEL.template.md     # Gerbang 2: Skema data & migrasi
-│   ├── TASKS.template.md          # Gerbang 3: Daftar task atomik
-│   ├── TESTING.template.md        # Gerbang 3: Rencana pengujian
-│   ├── CHECKLISTS.template.md     # Gerbang 4: Checklist rilis
-│   ├── AI_WORKFLOW.template.md    # Gerbang 4: Aturan main agen
-│   ├── SESSION_STATE.template.md  # Gerbang 4: Matriks state & WAL aktif
-│   ├── CHANGELOG.template.md      # Gerbang 4: Log riwayat rilis
-│   └── profiles/
-│       └── DOMAIN_BOOKING.profile.md  # Profil domain reservasi & sewa
-├── examples/                  # Contoh dokumen SESSION_STATE yang valid
-├── scripts/                   # Wrapper skrip (meneruskan eksekusi ke scripts/zlce/)
-│   └── zlce/                  # Skrip kanonik (salin folder ini ke repo proyek Anda)
-│       ├── zlce-check.py      # Validator integritas format & dependensi state
-│       ├── zlce-snapshot.sh   # Snapshot git diff dan WAL untuk recovery
-│       └── zlce-collect.py    # Kolektor bundle diagnostik
-├── src/                       # Kode sumber ZLCE Studio (React 19 + Vite + Tailwind v4)
-│   ├── components/            # Komponen antarmuka (Editor, Recovery, Triage, dll.)
-│   ├── hooks/                 # Custom hook (persistensi riwayat lokal & undo/redo)
-│   ├── data/                  # Template data & 14 skenario benchmark
-│   ├── utils/                 # Parser Markdown, validator skema, helper clipboard & UUID
-│   └── types/                 # Definisi tipe TypeScript
-├── docs/                      # Dokumentasi komprehensif
-│   ├── USAGE.md               # Panduan penggunaan lengkap 3 alur & triase revisi
-│   └── reviews/               # Laporan audit & catatan review versi
-├── data/                      # Bukti hasil evaluasi kit
-│   └── FEEDBACK_ZLCE_EVALUASI.md
-├── CHANGELOG.md               # Riwayat perubahan per versi
-├── CONTRIBUTING.md            # Panduan kontribusi kode
-├── SECURITY.md                # Kebijakan privasi & pelaporan kerentanan
-├── LICENSE                    # Lisensi resmi (MIT)
-├── index.html                 # HTML entry point aplikasi web
-├── package.json               # Konfigurasi dependensi npm
-├── tsconfig.json              # Konfigurasi TypeScript
-└── vite.config.ts             # Konfigurasi bundler Vite
+├── BLUEPRINT.md                 # Sumber kebenaran spesifikasi, aturan bisnis BR-01 s/d BR-08
+├── TASKS.md                     # Daftar task pengembangan terstruktur ZLCE
+├── SESSION_STATE.md             # Status aktif sesi pengerjaan, matriks task, & log audit
+├── README.md                    # Dokumentasi resmi proyek (berkas ini)
+├── docs/                        # Dokumentasi arsitektur & panduan
+│   ├── CLAUDE_REVIEW_GUIDE.md   # Panduan file upload untuk review Claude
+│   ├── CLAUDE_PROMPT.md         # Prompt siap salin untuk review Claude
+│   ├── REVIEW_ACTION_PLAN.md    # Kerangka pemeriksaan & rencana penyesuaian review
+│   ├── GOOGLE_SHEETS_INTEGRATION.md # Panduan integrasi Google Sheets
+│   └── TELEGRAM_BOT_INTEGRATION.md  # Panduan integrasi Bot Telegram
+├── scripts/
+│   └── zlce/                    # Skrip pengujian status ZLCE (zlce-check.py, snapshot, collect)
+├── src/
+│   ├── components/              # Antarmuka modular (Dashboard, Bookings, Fleet, Kurir, Kwitansi, dll.)
+│   ├── data/                    # Seed data 16 unit garasi, 6 model, dan transaksi awal
+│   ├── services/                # Logika bisnis: bookingEngine, whatsappService, googleSheets, telegramBot
+│   ├── types/                   # Definisi tipe TypeScript ryoko.ts
+│   └── utils/                   # Helper hitung mundur, parser chat WhatsApp, formatting
+├── public/                      # Aset statis, ikon Android PWA, favicon
+├── vite.config.ts               # Konfigurasi bundler Vite & PWA
+└── package.json                 # Metadata pustaka dan dependensi
 ```
 
-</details>
-
-Template tersedia dalam tiga bentuk dari satu sumber kebenaran:
-1. **Berkas modular** di `templates/` untuk IDE AI (Cursor, Windsurf, VS Code).
-2. **Bundel mandiri** di `ZLCE_KIT_SINGLE.md` untuk AI berbasis prompt tunggal (ChatGPT, Claude web).
-3. **Impor statis** (`?raw`) ke dalam ZLCE Studio saat build aplikasi web.
-
 ---
 
-## Hasil Pengujian
+## 📄 Lisensi
 
-Kit ZLCE v3.2.2 telah diuji dengan 14 skenario evaluasi (gerbang, verifikasi, triase revisi, anti-halusinasi, handover, recovery A–D, format checkpoint, dan aturan jam). 13 skenario diuji terotomatisasi di tab Harness dan 1 skenario (kompatibilitas CLI) diuji secara manual.
-
-| Parameter | Catatan Verifikasi |
-| :--- | :--- |
-| **Hasil** | **14 / 14 LULUS (100% Pass Rate)** |
-| **Model AI Diuji** | Google Gemini 3.8 Flash / Anthropic Claude 3.5 Sonnet |
-| **Suhu (Temperature) & Run** | `0.2` · 3 run konsisten |
-| **Tanggal & Versi Kit** | 2026-10-21 · v3.2.2 |
-| **Bukti Transparan** | [`data/FEEDBACK_ZLCE_EVALUASI.md`](data/FEEDBACK_ZLCE_EVALUASI.md) |
-
-<details>
-<summary><b>Daftar 14 Skenario Pengujian</b></summary>
-
-- **T1**: Inisiasi Proyek Baru & Kepatuhan Gerbang 1
-- **T2**: Uji Manual Kompatibilitas CLI & Git (`zlce-check`, `zlce-collect`, `zlce-snapshot`)
-- **T3**: Penolakan Penandaan DONE Tanpa Bukti Riil
-- **T4a**: Triase Revisi Level S (Typo / Perubahan <5 Baris)
-- **T4b**: Triase Revisi Level M Dependen (Memperbarui Task Aktif)
-- **T4c**: Triase Revisi Level M Independen (Menjadwalkan Task PENDING Baru)
-- **T5**: Protokol Anti-Halusinasi Konfigurasi & Berkas
-- **T6**: Handover Mode Normal
-- **T7A**: Recovery Kasus A (Working Tree Bersih)
-- **T7B**: Recovery Kasus B (Diff Uncommitted Sesuai WAL)
-- **T7C**: Recovery Kasus C (Untracked Commit di Luar State)
-- **T7D**: Recovery Kasus D (Perubahan di Luar WAL)
-- **T8**: Format Checkpoint Block & Transaksionalitas WAL
-- **X1**: Aturan Jam Anti-Ekstrapolasi (Fallback Wajib `"jam: ?"`)
-
-</details>
-
----
-
-## Batasan yang Diketahui
-
-- **Karakteristik AI**: Kepatuhan AI terhadap protokol bersifat probabilistik. Hasil evaluasi 14/14 berlaku untuk model dan konfigurasi yang tertera di atas.
-- **Cakupan Validator Web**: Validator di aplikasi web memeriksa semua aturan integritas internal yang terdapat di `SESSION_STATE.md`. Pemeriksaan silang terhadap berkas `TASKS.md` dan integrasi git log/diff memerlukan skrip terminal (`zlce-check.py` dan `zlce-snapshot.sh`).
-- **Estimasi Token**: Perhitungan token pada gauge Studio menggunakan rasio aproksimasi standar (1 token ≈ 4 karakter).
-- **Lingkungan CLI**: Skrip shell `zlce-snapshot.sh` membutuhkan interpreter bash standar (di sistem operasi Windows, gunakan WSL atau Git Bash).
-- **Operasi Git**: Aplikasi web ZLCE Studio berjalan di browser dan tidak mengakses sistem berkas lokal atau git secara langsung; gunakan antarmuka CLI yang disediakan untuk operasi git.
-
----
-
-## Privasi dan Keamanan
-
-ZLCE Studio berjalan sepenuhnya di sisi peramban (*client-side*). Draf pekerjaan disimpan secara lokal di `localStorage` perangkat Anda dan tidak pernah dikirimkan ke server jarak jauh mana pun. Jangan pernah mencantumkan rahasia produksi (kunci API, kredensial database) di dalam `SESSION_STATE.md`. Untuk informasi selengkapnya atau pelaporan kerentanan, silakan baca [`SECURITY.md`](SECURITY.md).
-
----
-
-## Kontribusi
-
-Kontribusi berupa saran, perbaikan bug, atau penambahan fitur sangat disambut. Sebelum mengajukan *Pull Request*, pastikan:
-
-```bash
-npm ci
-npm run lint
-npm run build
-python3 scripts/zlce/zlce-check.py --state examples/SESSION_STATE.example.md --no-git
-```
-
-Jika Anda mengubah berkas template di `templates/` atau prompt kontrol, pastikan untuk menyelaraskan `ZLCE_KIT_SINGLE.md`. Panduan kontribusi selengkapnya dapat dibaca di [`CONTRIBUTING.md`](CONTRIBUTING.md). Riwayat versi dapat dilihat di [`CHANGELOG.md`](CHANGELOG.md).
-
----
-
-## Lisensi
-
-Didistribusikan di bawah lisensi [MIT](LICENSE) © 2026 ZLCE Project Contributors.
+Didistribusikan di bawah lisensi [MIT](LICENSE) © 2026 RyokoRent Malang & Batu Contributors.

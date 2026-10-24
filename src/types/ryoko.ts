@@ -196,6 +196,10 @@ export interface RentalSettings {
   turnaroundBufferMinutes: number; // 60 menit (BR-04 revisi)
   operatorName: string;
   auditLogs: AuditLogItem[];
+  // Integrasi Kolaborasi Eksternal (TASK-013 & TASK-014)
+  googleSheetsWebhookUrl?: string;
+  telegramBotToken?: string;
+  telegramAdminChatId?: string;
 }
 
 export type UserRole = 'administrator' | 'admin_custom' | 'operator' | 'kurir';

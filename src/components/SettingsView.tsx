@@ -29,7 +29,19 @@ import {
   History,
   Users,
   UserCheck,
+  FileSpreadsheet,
+  Send,
+  Bot,
 } from 'lucide-react';
+import {
+  downloadBookingsCSV,
+  bulkSyncBookingsToGoogleSheets,
+  getOfflineSheetsQueueCount,
+} from '../services/googleSheetsService';
+import {
+  testTelegramBotConnection,
+  sendTelegramReturnAlert,
+} from '../services/telegramBotService';
 
 interface SettingsViewProps {
   db: RyokoDatabase;
@@ -57,7 +69,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [namaRental, setNamaRental] = useState(db.settings.namaRental || 'Ryoko Rent Motor Malang & Batu');
   const [poolMalang, setPoolMalang] = useState(db.settings.poolMalangAlamat || '');
   const [poolBatu, setPoolBatu] = useState(db.settings.poolBatuAlamat || '');
+  const [googleSheetsUrl, setGoogleSheetsUrl] = useState(db.settings.googleSheetsWebhookUrl || '');
+  const [telegramToken, setTelegramToken] = useState(db.settings.telegramBotToken || '');
+  const [telegramChatId, setTelegramChatId] = useState(db.settings.telegramAdminChatId || '');
   const [saveMsg, setSaveMsg] = useState('');
+  const [integrationStatus, setIntegrationStatus] = useState<string>('');
+  const [isTestingTg, setIsTestingTg] = useState<boolean>(false);
+  const [isSyncingSheets, setIsSyncingSheets] = useState<boolean>(false);
 
   // Anti-NIK interactive tester
   const [testNikInput, setTestNikInput] = useState('Contoh NIK KTP: 3573011205980001');
@@ -74,10 +92,57 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       namaRental: namaRental.trim(),
       poolMalangAlamat: poolMalang.trim(),
       poolBatuAlamat: poolBatu.trim(),
+      googleSheetsWebhookUrl: googleSheetsUrl.trim(),
+      telegramBotToken: telegramToken.trim(),
+      telegramAdminChatId: telegramChatId.trim(),
     };
     onUpdateSettings(updated);
-    setSaveMsg('Pengaturan operasional berhasil disimpan ke LocalStorage!');
+    setSaveMsg('Pengaturan operasional & integrasi berhasil disimpan ke LocalStorage!');
     setTimeout(() => setSaveMsg(''), 4000);
+  };
+
+  const handleDownloadCSV = () => {
+    downloadBookingsCSV(db.bookings);
+    setIntegrationStatus('Berkas CSV 13-Field berhasil diunduh untuk Google Sheets!');
+    setTimeout(() => setIntegrationStatus(''), 4000);
+  };
+
+  const handleSyncGoogleSheets = async () => {
+    setIsSyncingSheets(true);
+    setIntegrationStatus('Menyinkronkan transaksi ke Google Sheets...');
+    const res = await bulkSyncBookingsToGoogleSheets(db.bookings, googleSheetsUrl);
+    setIsSyncingSheets(false);
+    setIntegrationStatus(res.message);
+    setTimeout(() => setIntegrationStatus(''), 6000);
+  };
+
+  const handleTestTelegram = async () => {
+    setIsTestingTg(true);
+    setIntegrationStatus('Menghubungi Telegram API...');
+    const res = await testTelegramBotConnection(telegramToken, telegramChatId);
+    setIsTestingTg(false);
+    setIntegrationStatus(res.message);
+    setTimeout(() => setIntegrationStatus(''), 6000);
+  };
+
+  const handleTestTelegramReturnAlert = async () => {
+    const sampleBooking = db.bookings.find(b => b.status === 'ryokou_disewa' || b.status === 'ryokou_approved') || db.bookings[0];
+    if (!sampleBooking) {
+      setIntegrationStatus('Tidak ada data booking untuk simulasi alert.');
+      return;
+    }
+    const motor = db.motors.find(m => m.id === sampleBooking.motorId) || db.motors[0];
+    setIntegrationStatus('Mengirimkan notifikasi jatuh tempo contoh ke Telegram...');
+    const res = await sendTelegramReturnAlert(
+      sampleBooking,
+      motor,
+      'h_2_jam',
+      telegramToken,
+      telegramChatId,
+      25000
+    );
+    setIntegrationStatus(res.message);
+    setTimeout(() => setIntegrationStatus(''), 6000);
   };
 
   const handleDownloadBackup = () => {
@@ -313,6 +378,148 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <span className="text-[11px] text-red-300/80">Muat ulang data standar</span>
             </div>
           </button>
+        </div>
+      </div>
+
+      {/* Integrasi Kolaborasi: Google Sheets & Bot Telegram (TASK-013 & TASK-014) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 text-xs">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <span className="p-1 rounded-lg bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+              <FileSpreadsheet className="w-4 h-4" />
+            </span>
+            <span>Integrasi Kolaborasi: Google Sheets & Bot Telegram (TASK-013 & TASK-014)</span>
+          </h3>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-700/60 text-emerald-300">
+            Kolaborasi Aktif
+          </span>
+        </div>
+
+        {integrationStatus && (
+          <div className="p-3 rounded-xl bg-cyan-950/60 border border-cyan-800/60 text-cyan-200 text-xs flex items-center gap-2 animate-fadeIn">
+            <CheckCircle className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span>{integrationStatus}</span>
+          </div>
+        )}
+
+        {/* Sub-Card 1: Google Sheets Collaboration */}
+        <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-slate-200">
+              <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+              <span>1. Google Sheets: Simpan Data 13-Field, Review, Opsi & Aksi</span>
+            </div>
+            <span className="text-[11px] text-slate-400">
+              Antrean Offline: <strong className="text-emerald-400">{getOfflineSheetsQueueCount()}</strong>
+            </span>
+          </div>
+
+          <p className="text-slate-400 text-[11px] leading-relaxed">
+            Mengekspor seluruh 13 field data penyewa ke baris spreadsheet Google Sheets. Memungkinkan Owner/Admin mereview data (Status: Pending/Approved/Rejected), memilih opsi operasional (Siapkan Unit, Tugaskan Kurir, Kirim Tagihan), dan mencatat aksi yang disetujui.
+          </p>
+
+          <div className="space-y-1.5">
+            <label className="block text-slate-300 font-semibold text-[11px]">
+              URL Webhook Google Apps Script (Opsional untuk Sinkronisasi Otomatis):
+            </label>
+            <input
+              type="url"
+              value={googleSheetsUrl}
+              onChange={e => setGoogleSheetsUrl(e.target.value)}
+              placeholder="https://script.google.com/macros/s/.../exec"
+              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
+            />
+            <span className="text-[10px] text-slate-500">
+              Lihat panduan dan salin kode Apps Script di <code>docs/GOOGLE_SHEETS_INTEGRATION.md</code>.
+            </span>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-1">
+            <button
+              type="button"
+              onClick={handleDownloadCSV}
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold transition flex items-center gap-1.5 border border-slate-700"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Unduh CSV 13-Field (Siap Impor Sheets)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSyncGoogleSheets}
+              disabled={isSyncingSheets}
+              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold transition flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>{isSyncingSheets ? 'Menyinkronkan...' : 'Sinkronkan ke Google Sheets'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Sub-Card 2: Telegram Bot Return Alert */}
+        <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-slate-200">
+              <Bot className="w-4 h-4 text-sky-400" />
+              <span>2. Bot Telegram: Alert Pengembalian & Tombol Aksi Interaktif</span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-950/80 border border-sky-800/60 text-sky-300">
+              Inline Keyboard
+            </span>
+          </div>
+
+          <p className="text-slate-400 text-[11px] leading-relaxed">
+            Bot Telegram mengirimkan notifikasi jatuh tempo (H-2 Jam, H-1 Jam, Overdue) langsung ke Telegram Admin/Operator. Dilengkapi tombol inline review detail, setujui penyelesaian unit di pool, perpanjangan sewa, dan pengenaan denda keterlambatan.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="block text-slate-300 font-semibold text-[11px]">
+                Telegram Bot Token (@BotFather):
+              </label>
+              <input
+                type="text"
+                value={telegramToken}
+                onChange={e => setTelegramToken(e.target.value)}
+                placeholder="7123456789:AAF_..."
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-slate-300 font-semibold text-[11px]">
+                Chat ID Admin / Grup Telegram (@userinfobot):
+              </label>
+              <input
+                type="text"
+                value={telegramChatId}
+                onChange={e => setTelegramChatId(e.target.value)}
+                placeholder="Contoh: 123456789 atau -100..."
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-1">
+            <button
+              type="button"
+              onClick={handleTestTelegram}
+              disabled={isTestingTg}
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold transition flex items-center gap-1.5 border border-slate-700 disabled:opacity-50"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>{isTestingTg ? 'Menguji...' : 'Uji Koneksi Telegram'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleTestTelegramReturnAlert}
+              className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold transition flex items-center gap-1.5"
+            >
+              <Bot className="w-3.5 h-3.5" />
+              <span>Kirim Alert Jatuh Tempo Contoh</span>
+            </button>
+          </div>
         </div>
       </div>
 
