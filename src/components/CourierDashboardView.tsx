@@ -18,6 +18,7 @@ import {
   AlertCircle,
   ArrowRight,
   ShieldAlert,
+  Receipt,
 } from 'lucide-react';
 import { generateWhatsAppLink } from '../services/whatsappService';
 
@@ -27,6 +28,7 @@ interface CourierDashboardViewProps {
   onConfirmHandover: (bookingId: number) => void;
   onConfirmFinish: (bookingId: number, returnPool: PoolLocation, denda: { nominal: number; keterangan: string }) => void;
   onParkUnitBack: (unitId: number, pool: PoolLocation) => void;
+  onOpenReceiptModal?: (booking: BookingRecord) => void;
 }
 
 export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
@@ -35,6 +37,7 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
   onConfirmHandover,
   onConfirmFinish,
   onParkUnitBack,
+  onOpenReceiptModal,
 }) => {
   const [selectedTaskTab, setSelectedTaskTab] = useState<'antar' | 'jemput' | 'motor_kurir'>('antar');
 
@@ -230,14 +233,25 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
                     </div>
 
                     {/* Action buttons */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                       <button
                         onClick={() => handleChatGuestDelivery(booking)}
-                        className="flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition active:scale-95 shadow-sm"
+                        className="flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold py-2 px-2.5 rounded-lg transition active:scale-95 shadow-sm"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Chat WhatsApp Tamu</span>
+                        <span>Chat WhatsApp</span>
                       </button>
+
+                      {onOpenReceiptModal && (
+                        <button
+                          onClick={() => onOpenReceiptModal(booking)}
+                          className="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-semibold py-2 px-2.5 rounded-lg transition active:scale-95"
+                          title="Buka Kwitansi Digital, Simpan PDF & Salin Nota"
+                        >
+                          <Receipt className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Kwitansi / Nota</span>
+                        </button>
+                      )}
 
                       <button
                         onClick={() => {
@@ -245,10 +259,10 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
                             onConfirmHandover(booking.id);
                           }
                         }}
-                        className="flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2 px-3 rounded-lg transition active:scale-95 shadow-md shadow-amber-950"
+                        className="flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2 px-2.5 rounded-lg transition active:scale-95 shadow-md shadow-amber-950"
                       >
                         <CheckCircle2 className="w-4 h-4" />
-                        <span>Konfirmasi Unit Diserahkan</span>
+                        <span>Unit Diserahkan</span>
                       </button>
                     </div>
                   </div>
@@ -332,14 +346,25 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
                     </div>
 
                     {/* Action buttons */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                       <button
                         onClick={() => handleChatGuestPickup(booking)}
-                        className="flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition active:scale-95 shadow-sm"
+                        className="flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold py-2 px-2.5 rounded-lg transition active:scale-95 shadow-sm"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Chat WhatsApp Tamu</span>
+                        <span>Chat WhatsApp</span>
                       </button>
+
+                      {onOpenReceiptModal && (
+                        <button
+                          onClick={() => onOpenReceiptModal(booking)}
+                          className="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-semibold py-2 px-2.5 rounded-lg transition active:scale-95"
+                          title="Buka Kwitansi Digital, Simpan PDF & Salin Nota"
+                        >
+                          <Receipt className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Kwitansi / Nota</span>
+                        </button>
+                      )}
 
                       <button
                         onClick={() => {
@@ -348,10 +373,10 @@ export const CourierDashboardView: React.FC<CourierDashboardViewProps> = ({
                             onConfirmFinish(booking.id, pool, { nominal: 0, keterangan: 'Selesai dijemput kurir' });
                           }
                         }}
-                        className="flex items-center justify-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold py-2 px-3 rounded-lg transition active:scale-95 shadow-md shadow-cyan-950"
+                        className="flex items-center justify-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold py-2 px-2.5 rounded-lg transition active:scale-95 shadow-md shadow-cyan-950"
                       >
                         <CheckCircle2 className="w-4 h-4" />
-                        <span>Konfirmasi Unit Masuk Pool</span>
+                        <span>Unit Masuk Pool</span>
                       </button>
                     </div>
                   </div>

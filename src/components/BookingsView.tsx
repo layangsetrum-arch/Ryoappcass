@@ -26,6 +26,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   UserCheck,
+  Receipt,
 } from 'lucide-react';
 
 interface BookingsViewProps {
@@ -36,6 +37,7 @@ interface BookingsViewProps {
   onOpenExchangeModal: (booking: BookingRecord) => void;
   onOpenFinishModal: (booking: BookingRecord) => void;
   onCancelBooking: (bookingId: number) => void;
+  onOpenReceiptModal?: (booking: BookingRecord) => void;
 }
 
 export const BookingsView: React.FC<BookingsViewProps> = ({
@@ -46,6 +48,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
   onOpenExchangeModal,
   onOpenFinishModal,
   onCancelBooking,
+  onOpenReceiptModal,
 }) => {
   const [activeStatusFilter, setActiveStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -350,6 +353,17 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                       >
                         <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
                         <span>WA Penyewa</span>
+                      </button>
+                    )}
+
+                    {onOpenReceiptModal && (
+                      <button
+                        onClick={() => onOpenReceiptModal(b)}
+                        className="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 hover:bg-cyan-900/80 border border-cyan-700/60 text-cyan-300 text-xs font-semibold flex items-center gap-1 transition"
+                        title="Buka Kwitansi Digital, Simpan PDF & Salin Ringkasan Nota Cepat"
+                      >
+                        <Receipt className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Kwitansi</span>
                       </button>
                     )}
                   </div>

@@ -40,6 +40,7 @@ import {
   UpdateTrackingModal,
 } from './components/ActionModals';
 import { PWAInstallModal } from './components/PWAInstallModal';
+import { DigitalReceiptModal } from './components/DigitalReceiptModal';
 
 export const App: React.FC = () => {
   // Database State in LocalStorage
@@ -63,6 +64,7 @@ export const App: React.FC = () => {
   const [selectedExchangeBooking, setSelectedExchangeBooking] = useState<BookingRecord | null>(null);
   const [selectedFinishBooking, setSelectedFinishBooking] = useState<BookingRecord | null>(null);
   const [selectedUpdateTracking, setSelectedUpdateTracking] = useState<UnitTracking | null>(null);
+  const [selectedReceiptBooking, setSelectedReceiptBooking] = useState<BookingRecord | null>(null);
 
   // Parsed ZLCE Session State for Recovery Wizard
   const recoverySessionState: ParsedSessionState = useMemo(() => {
@@ -854,6 +856,7 @@ export const App: React.FC = () => {
               onConfirmHandover={handleConfirmHandover}
               onConfirmFinish={handleConfirmFinish}
               onParkUnitBack={handleCourierParkBack}
+              onOpenReceiptModal={b => setSelectedReceiptBooking(b)}
             />
           )}
 
@@ -883,6 +886,7 @@ export const App: React.FC = () => {
               onOpenExchangeModal={b => setSelectedExchangeBooking(b)}
               onOpenFinishModal={b => setSelectedFinishBooking(b)}
               onCancelBooking={handleCancelBooking}
+              onOpenReceiptModal={b => setSelectedReceiptBooking(b)}
             />
           )}
 
@@ -1050,6 +1054,15 @@ export const App: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 9. Digital Paperless Receipt / Invoice Modal (TASK-007) */}
+      {selectedReceiptBooking && (
+        <DigitalReceiptModal
+          booking={selectedReceiptBooking}
+          db={db}
+          onClose={() => setSelectedReceiptBooking(null)}
+        />
       )}
     </div>
   );

@@ -12,6 +12,7 @@ Definisi task. **Status task tidak ditulis di sini**; status ada di `SESSION_STA
 * **FASE 3: Form Pemesanan Baru, Laporan Omset & WhatsApp Ekstra** (`TASK-004`)
 * **FASE 4: Integrasi Wizard Recovery ZLCE Studio & Verifikasi Akhir** (`TASK-005`)
 * **FASE 5: Panel Manajemen User & Role-Based Access Control 4 Tingkat** (`TASK-006`)
+* **FASE 6: Kwitansi Paperless, Countdown Real-Time & Armada Dinamis** (`TASK-007`, `TASK-008`, `TASK-009`)
 
 ---
 
@@ -110,3 +111,51 @@ Definisi task. **Status task tidak ditulis di sini**; status ada di `SESSION_STA
   5. Pengguna dapat berganti akun secara langsung melalui Switcher Profil di Top Bar atau tab Pengguna.
 * **Test Case:** Role switching, permission enforcement & courier workflow
 * **Metode Verifikasi:** Jalankan `python3 scripts/zlce/zlce-check.py . --no-git` dan `npm run lint`.
+
+---
+
+### TASK-007: Modul Kwitansi Digital Paperless & Salin Teks Ringkasan Nota Kasir Cepat
+* **Fase:** FASE 6
+* **Deskripsi:** Mengimplementasikan modal Kwitansi Digital / Invoice resmi Ryoko Rent Malang & Batu tanpa cetak kertas (paperless). Mendukung preview nota kasir digital yang rapi, tombol Simpan / Unduh PDF, tombol Salin Teks Ringkasan Nota Kasir untuk chat cepat WhatsApp, rincian Berita Acara Serah Terima (BAST: kelengkapan 2 helm, 2 jas hujan, bensin, deposit), serta kirim WhatsApp 1-klik. Tersedia di setiap card booking dan dashboard kurir.
+* **Dependensi:** `TASK-006`
+* **File:** `src/components/DigitalReceiptModal.tsx`, `src/components/BookingsView.tsx`, `src/components/CourierDashboardView.tsx`, `src/App.tsx`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Terdapat tombol "Kwitansi / Invoice" pada setiap card booking dan view kurir.
+  2. Modal kwitansi menampilkan identitas rental, detail penyewa, rincian biaya (tarif + denda jika ada), unit motor, nomor plat, dan kelengkapan unit.
+  3. Pengguna dapat mengunduh / menyimpan nota dalam format PDF tanpa perlu cetak kertas.
+  4. Pengguna dapat menyalin teks ringkasan nota kasir untuk chat cepat hanya dengan 1-klik.
+  5. Tersedia tombol kirim kwitansi langsung ke WhatsApp penyewa.
+* **Test Case:** Digital receipt modal, PDF export trigger, quick copy text
+* **Metode Verifikasi:** Jalankan `npm run lint` dan verifikasi fungsi salin nota kasir & render modal.
+
+---
+
+### TASK-008: Sistem Countdown Pengembalian Real-Time & Alert Jatuh Tempo di Dashboard/Kurir
+* **Fase:** FASE 6
+* **Deskripsi:** Mengimplementasikan banner hitung mundur (countdown) waktu sewa real-time pada beranda dan dashboard kurir, mengklasifikasikan unit dalam status Aman, H-2 Jam, H-1 Jam, dan Overdue, disertai kalkulasi denda otomatis per menit/jam dan generator pesan pengingat jatuh tempo WhatsApp.
+* **Dependensi:** `TASK-007`
+* **File:** `src/components/DashboardView.tsx`, `src/components/CourierDashboardView.tsx`, `src/services/whatsappService.ts`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Banner status countdown tampil interaktif dengan indikator warna (hijau, kuning H-2 jam, merah overdue).
+  2. Tombol kirim pengingat pengembalian ke WhatsApp penyewa tersedia langsung dari banner.
+* **Test Case:** Countdown timer & alert calculations
+* **Metode Verifikasi:** Jalankan `npm run lint`.
+
+---
+
+### TASK-009: Master Model Motor Dinamis & Manajemen Tarif Khusus di FleetView
+* **Fase:** FASE 6
+* **Deskripsi:** Menambahkan fitur CRUD master model motor baru (tambah model, ubah nama, cc, transmisi, tarif spesifik per durasi termasuk tarif 1 bulan) di `FleetView.tsx` agar katalog armada garasi dapat diperluas secara fleksibel tanpa edit kode sumber.
+* **Dependensi:** `TASK-008`
+* **File:** `src/components/FleetView.tsx`, `src/services/storageService.ts`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Operator/Admin dapat menambah model motor baru dengan tarif lengkap (ShortRent, Harian, 1 Bulan).
+  2. Data tersimpan persisten di LocalStorage dan langsung muncul di opsi booking baru.
+* **Test Case:** Create/Edit motor model
+* **Metode Verifikasi:** Jalankan `python3 scripts/zlce/zlce-check.py .` dan `npm run lint`.
