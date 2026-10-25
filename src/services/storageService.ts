@@ -3,6 +3,16 @@ import { INITIAL_DATABASE } from '../data/seedData';
 
 const STORAGE_KEY = 'ryokourent_db_v1';
 
+export interface SaveResult {
+  ok: boolean;
+  message?: string;
+}
+
+// Request persistent storage if supported (TASK-020)
+if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().catch(() => {});
+}
+
 export function loadDatabase(): RyokoDatabase {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -18,6 +28,10 @@ export function loadDatabase(): RyokoDatabase {
     // Auto-migrate serviceRecords if missing
     if (!parsed.serviceRecords) {
       parsed.serviceRecords = INITIAL_DATABASE.serviceRecords || [];
+    }
+    // Auto-migrate dailyOperationalLogs if missing
+    if (!parsed.dailyOperationalLogs) {
+      parsed.dailyOperationalLogs = [];
     }
     // Auto-migrate users if missing
     if (!parsed.users || !Array.isArray(parsed.users) || parsed.users.length === 0) {
@@ -48,12 +62,15 @@ export function loadDatabase(): RyokoDatabase {
   }
 }
 
-export function saveDatabase(db: RyokoDatabase): void {
+export function saveDatabase(db: RyokoDatabase): SaveResult {
   try {
     db.lastUpdated = new Date().toISOString();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    return { ok: true };
   } catch (error) {
     console.error('Failed to save database to LocalStorage:', error);
+    const errText = error instanceof Error ? error.message : 'Kuota penyimpanan LocalStorage terlampaui';
+    return { ok: false, message: errText };
   }
 }
 
@@ -62,8 +79,21 @@ export function resetDatabaseToDefault(): RyokoDatabase {
   return INITIAL_DATABASE;
 }
 
-export function exportDatabaseJSON(): string {
+export function exportDatabaseJSON(includeSecrets = false): string {
   const db = loadDatabase();
+  if (!includeSecrets) {
+    // Sanitasi kredensial eksternal untuk backup publik aman (TASK-020 F-13)
+    const sanitizedDb: RyokoDatabase = {
+      ...db,
+      settings: {
+        ...db.settings,
+        telegramBotToken: undefined,
+        telegramAdminChatId: undefined,
+        googleSheetsWebhookUrl: undefined,
+      },
+    };
+    return JSON.stringify(sanitizedDb, null, 2);
+  }
   return JSON.stringify(db, null, 2);
 }
 

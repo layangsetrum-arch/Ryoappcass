@@ -389,3 +389,87 @@ export function generateEmptyBookingFormWhatsAppUrl(phone: string): string {
   return `https://api.whatsapp.com/send?phone=${encodeURIComponent(targetPhone)}&text=${encodeURIComponent(text)}`;
 }
 
+/**
+ * QUICK SHARE WHATSAPP TEMPLATES (TASK-015)
+ */
+export function generateQuickShareConfirmationText(booking: BookingRecord, namaRental = 'Ryoko Rent Motor'): string {
+  const helmCount = booking.jumlahHelm || 2;
+  return `*KONFIRMASI RESERVASI SEWA MOTOR — ${namaRental.toUpperCase()}* 🛵✨
+
+Halo Kak *${booking.nama}*,
+Terima kasih telah memesan sewa motor di ${namaRental} Malang & Batu. Berikut rincian pemesanan Anda:
+
+📋 *No. Booking:* ${booking.noBooking}
+🛵 *Unit Motor:* ${booking.snapshotNamaMotor} ${booking.snapshotKodeUnit ? `(Unit: *${booking.snapshotKodeUnit}*)` : ''}
+⏱️ *Durasi Sewa:* ${booking.labelDurasi}
+📅 *Jadwal Ambil:* ${booking.jamTanggalMulai.replace('T', ' ')} WIB
+📅 *Tenggat Kembali:* ${booking.jamTanggalSelesai.replace('T', ' ')} WIB
+📍 *Lokasi Antar/Ambil:* ${booking.alamatPengantaran || (booking.pool === 'batu' ? 'Pool Batu' : 'Pool Malang')}
+📍 *Lokasi Jemput/Kembali:* ${booking.alamatPenjemputan || (booking.pool === 'batu' ? 'Pool Batu' : 'Pool Malang')}
+💰 *Total Biaya Sewa:* ${formatRupiah(booking.totalHargaEstimasi)}
+
+🪖 *Fasilitas Termasuk:*
+• ${helmCount} Helm SNI Bersih
+• 2 Jas Hujan Setelan
+• STNK Asli + Kunci Kontak Kendaraan
+
+Mohon siapkan identitas fisik asli (${booking.jenisIdPendukung || 'SIM C / E-KTP'}) saat serah terima unit motor.
+Sampai jumpa di Malang & Batu! 🙏`;
+}
+
+export function generateQuickShareReturnReminderText(booking: BookingRecord, namaRental = 'Ryoko Rent Motor'): string {
+  const lokasiKembali = booking.alamatPenjemputan || (booking.pool === 'batu' ? 'Pool Batu (Diponegoro)' : 'Pool Malang (Dinoyo)');
+  return `*PENGINGAT JADWAL PENGEMBALIAN UNIT — ${namaRental.toUpperCase()}* ⏰
+
+Halo Kak *${booking.nama}*,
+Mengingatkan bahwa waktu sewa motor Anda akan berakhir sesuai jadwal berikut:
+
+📋 *No. Booking:* ${booking.noBooking}
+🛵 *Unit:* ${booking.snapshotNamaMotor} (Kode: *${booking.snapshotKodeUnit || '-'}*)
+⏰ *Tenggat Waktu Kembali:* *${booking.jamTanggalSelesai.replace('T', ' ')} WIB*
+📍 *Titik Pengembalian:* ${lokasiKembali}
+
+🔍 *Checklist Pengembalian:*
+1. Pastikan STNK asli dan kunci motor lengkap
+2. Kelengkapan ${booking.jumlahHelm || 2} helm SNI dan jas hujan kembali ke bagasi
+3. Bahan bakar dikembalikan sesuai posisi awal serah terima
+
+Jika Kakak berencana memperpanjang durasi sewa, silakan langsung balas pesan ini sebelum masa sewa berakhir agar unit dapat diperpanjang tanpa denda keterlambatan (D-27).
+
+Terima kasih dan hati-hati di jalan! 🛵💨`;
+}
+
+export function generateQuickShareThankYouText(booking: BookingRecord, namaRental = 'Ryoko Rent Motor'): string {
+  return `*TERIMA KASIH TELAH MEMILIH ${namaRental.toUpperCase()}* 🙏✨
+
+Halo Kak *${booking.nama}*,
+Terima kasih banyak telah mempercayakan perjalanan dan liburan Anda di Malang & Batu bersama kami! Unit motor *${booking.snapshotNamaMotor}* telah resmi kami terima kembali dalam kondisi baik.
+
+🌟 *Bantu Kami Menjadi Lebih Baik:*
+Jika pelayanan kami memuaskan, kami sangat berterima kasih bila Kakak berkenan memberikan ulasan bintang 5 di Google Maps kami.
+
+🎁 *Promo Repeat Order:*
+Simpan nomor ini untuk mendapatkan diskon khusus penyewaan berikutnya bersama teman atau keluarga.
+
+Sampai jumpa di perjalanan berikutnya di Malang & Kota Wisata Batu! 🛵🏔️`;
+}
+
+export function generateQuickShareConfirmationUrl(booking: BookingRecord, namaRental?: string, targetPhone?: string): string {
+  const phone = normalizeWhatsAppNumber(targetPhone || booking.nomorWa);
+  const text = generateQuickShareConfirmationText(booking, namaRental);
+  return `https://api.whatsapp.com/send?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}`;
+}
+
+export function generateQuickShareReturnReminderUrl(booking: BookingRecord, namaRental?: string, targetPhone?: string): string {
+  const phone = normalizeWhatsAppNumber(targetPhone || booking.nomorWa);
+  const text = generateQuickShareReturnReminderText(booking, namaRental);
+  return `https://api.whatsapp.com/send?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}`;
+}
+
+export function generateQuickShareThankYouUrl(booking: BookingRecord, namaRental?: string, targetPhone?: string): string {
+  const phone = normalizeWhatsAppNumber(targetPhone || booking.nomorWa);
+  const text = generateQuickShareThankYouText(booking, namaRental);
+  return `https://api.whatsapp.com/send?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}`;
+}
+
+

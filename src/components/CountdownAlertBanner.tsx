@@ -184,16 +184,16 @@ export const CountdownAlertBanner: React.FC<CountdownAlertBannerProps> = ({
             </span>
           )}
           {counts.h1 > 0 && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-orange-950 text-orange-300 border border-orange-700">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-950 text-orange-300 border border-orange-700">
               <span>⚠️ {counts.h1} H-1 Jam</span>
             </span>
           )}
           {counts.h2 > 0 && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-950 text-amber-300 border border-amber-700">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-950 text-amber-300 border border-amber-700">
               <span>⏳ {counts.h2} H-2 Jam</span>
             </span>
           )}
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800">
             <span>🟢 {counts.aman} Aman</span>
           </span>
         </div>

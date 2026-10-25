@@ -5,6 +5,7 @@ import {
 } from '../types/ryoko';
 import { formatRupiah, calculateOvertimePenalty } from '../services/bookingEngine';
 import { copyText } from '../utils/clipboard';
+import { toWaNumber } from '../utils/phone';
 import {
   FileText,
   Copy,
@@ -27,12 +28,14 @@ interface DigitalReceiptModalProps {
   booking: BookingRecord;
   db: RyokoDatabase;
   onClose: () => void;
+  onOpenQuickShare?: (booking: BookingRecord) => void;
 }
 
 export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
   booking,
   db,
   onClose,
+  onOpenQuickShare,
 }) => {
   const [copiedText, setCopiedText] = useState(false);
   const currentEpoch = Math.floor(Date.now() / 1000);
@@ -121,9 +124,12 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
 
   const handleSendWhatsApp = () => {
     const text = generateReceiptText();
-    const cleanPhone = (booking.nomorWa || '').replace(/\D/g, '');
-    const phoneParam = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
-    const url = `https://api.whatsapp.com/send?phone=${phoneParam}&text=${encodeURIComponent(text)}`;
+    const wa = toWaNumber(booking.nomorWa);
+    if (!wa) {
+      alert('Nomor WhatsApp penyewa tidak valid atau kosong.');
+      return;
+    }
+    const url = `https://api.whatsapp.com/send?phone=${encodeURIComponent(wa)}&text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
 
@@ -367,8 +373,23 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
               title="Kirim kwitansi langsung ke WhatsApp penyewa"
             >
               <Share2 className="w-3.5 h-3.5" />
-              <span>Kirim ke WA Tamu</span>
+              <span>Kirim Nota ke WA</span>
             </button>
+
+            {/* Quick Share WhatsApp Button */}
+            {onOpenQuickShare && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenQuickShare(booking);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/70 text-emerald-300 transition active:scale-95 shadow-xs"
+                title="Buka 3 Template WhatsApp (Konfirmasi, Pengingat, Terima Kasih)"
+              >
+                <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Quick Share WA</span>
+              </button>
+            )}
 
             {/* Save PDF Button */}
             <button

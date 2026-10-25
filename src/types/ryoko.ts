@@ -42,6 +42,39 @@ export type ServiceCategory =
   | 'aki_baterai'   // Baterai Kering / Aki
   | 'kecelakaan';   // Servis Kecelakaan / Insiden
 
+export type ReviewStatus = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'NEED_DOCS';
+
+export type OperationalOption =
+  | 'Siapkan Unit Garasi'
+  | 'Tugaskan Kurir Antar'
+  | 'Kirim Tagihan DP'
+  | 'Jadwalkan Servis Bengkel'
+  | 'Selesai & Arsip';
+
+export type OperationalLogCategory =
+  | 'catatan_shift'
+  | 'insiden_lapangan'
+  | 'lalu_lintas_cuaca'
+  | 'kondisi_armada'
+  | 'instruksi_tim';
+
+export type OperationalLogPriority = 'normal' | 'penting' | 'darurat';
+
+export interface DailyOperationalLog {
+  id: string;
+  tanggal: string; // YYYY-MM-DD
+  waktu: string;   // HH:mm WIB
+  kategori: OperationalLogCategory;
+  prioritas: OperationalLogPriority;
+  judul: string;
+  catatan: string;
+  unitTerkait?: string;
+  lokasi?: string;
+  penulis: string;
+  penulisRole: string;
+  createdAt: string;
+}
+
 export interface ServiceRecord {
   id: string;
   unitId: number;
@@ -154,6 +187,10 @@ export interface BookingRecord {
   totalHargaEstimasi: number;
   luarJamOperasional: boolean;
   catatanKhusus?: string;
+  // Review & Operational Follow Up
+  reviewStatus?: ReviewStatus;
+  opsiTindakLanjut?: OperationalOption;
+  aksiTerakhirDisetujui?: string;
   // Timestamps
   createdAt: string;
   approvedAt?: string | null;
@@ -200,6 +237,8 @@ export interface RentalSettings {
   googleSheetsWebhookUrl?: string;
   telegramBotToken?: string;
   telegramAdminChatId?: string;
+  lastGoogleSheetsSyncTime?: string;
+  autoSyncGoogleSheets?: boolean;
 }
 
 export type UserRole = 'administrator' | 'admin_custom' | 'operator' | 'kurir';
@@ -237,6 +276,7 @@ export interface RyokoDatabase {
   bookings: BookingRecord[];
   packages: RentalPackage[];
   serviceRecords: ServiceRecord[];
+  dailyOperationalLogs?: DailyOperationalLog[];
   users: AppUser[];
   currentUserId: string;
   settings: RentalSettings;

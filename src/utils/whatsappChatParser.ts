@@ -33,6 +33,7 @@ export interface ParsedBookingChat {
   jenisMotorKeyword: string;
   jumlahHelm: number;
   catatanRapi: string;
+  warnings?: string[];
 }
 
 export const STANDARD_BOOKING_TEMPLATE_TEXT = `*FORM PEMESANAN SEWA MOTOR RYOKO RENT*

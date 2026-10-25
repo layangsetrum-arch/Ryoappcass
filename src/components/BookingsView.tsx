@@ -29,7 +29,15 @@ import {
   AlertTriangle,
   UserCheck,
   Receipt,
+  Share2,
+  Info,
+  Wrench,
+  FileSpreadsheet,
+  Download,
+  ExternalLink,
 } from 'lucide-react';
+import { QuickShareTab } from './BookingDetailModal';
+import { downloadBookingsCSV } from '../services/googleSheetsService';
 
 interface BookingsViewProps {
   db: RyokoDatabase;
@@ -40,6 +48,9 @@ interface BookingsViewProps {
   onOpenFinishModal: (booking: BookingRecord) => void;
   onCancelBooking: (bookingId: number) => void;
   onOpenReceiptModal?: (booking: BookingRecord) => void;
+  onOpenDetailModal?: (booking: BookingRecord, initialTab?: 'detail' | 'quick_share', initialShareTab?: QuickShareTab) => void;
+  onSendToService?: (bookingId: number, reason?: string) => void;
+  onReturnFromService?: (bookingId: number, target: 'ryokou_disewa' | 'ryokou_selesai') => void;
 }
 
 export const BookingsView: React.FC<BookingsViewProps> = ({
@@ -51,6 +62,9 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
   onOpenFinishModal,
   onCancelBooking,
   onOpenReceiptModal,
+  onOpenDetailModal,
+  onSendToService,
+  onReturnFromService,
 }) => {
   const [activeStatusFilter, setActiveStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -136,13 +150,25 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={onOpenNewBooking}
-          className="self-start sm:self-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950 flex items-center gap-1.5 transition active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Tambah Booking Baru</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => downloadBookingsCSV(db.bookings)}
+            className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-emerald-400 font-bold text-xs border border-emerald-800/60 shadow-sm flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+            title="Unduh data booking format CSV untuk dibuka di Google Sheets atau Excel (100% Gratis)"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Ekspor CSV (Sheets)</span>
+          </button>
+
+          <button
+            onClick={onOpenNewBooking}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950 flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Tambah Booking Baru</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}
@@ -236,9 +262,13 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                 {/* Top Row: Booking Number & Status Badge */}
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-black text-cyan-400 font-mono tracking-wide">
-                      {b.noBooking}
-                    </span>
+                    <button
+                      onClick={() => onOpenDetailModal && onOpenDetailModal(b, 'detail')}
+                      className="text-sm font-black text-cyan-400 font-mono tracking-wide hover:underline cursor-pointer flex items-center gap-1"
+                      title="Klik untuk melihat Detail Booking & Quick Share"
+                    >
+                      <span>{b.noBooking}</span>
+                    </button>
                     <span
                       className={`text-[11px] font-bold px-2.5 py-0.5 rounded-lg border ${meta.badgeClass}`}
                     >
@@ -257,7 +287,18 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                     )}
                   </div>
 
-                  <span className="text-xs text-slate-400 font-mono">{b.createdAt}</span>
+                  <div className="flex items-center gap-2">
+                    {onOpenDetailModal && (
+                      <button
+                        onClick={() => onOpenDetailModal(b, 'detail')}
+                        className="text-[11px] font-semibold text-slate-400 hover:text-cyan-300 flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-slate-800 transition"
+                      >
+                        <Info className="w-3 h-3 text-cyan-400" />
+                        <span>Detail</span>
+                      </button>
+                    )}
+                    <span className="text-xs text-slate-400 font-mono">{b.createdAt}</span>
+                  </div>
                 </div>
 
                 {/* Details Grid */}
@@ -448,6 +489,25 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                         <span>Kwitansi</span>
                       </button>
                     )}
+
+                    {onOpenDetailModal && (
+                      <button
+                        onClick={() => {
+                          const defaultShareTab: QuickShareTab =
+                            b.status === 'ryokou_selesai'
+                              ? 'thankyou'
+                              : b.status === 'ryokou_disewa'
+                              ? 'reminder'
+                              : 'confirmation';
+                          onOpenDetailModal(b, 'quick_share', defaultShareTab);
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/70 text-emerald-300 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-xs"
+                        title="Quick Share WhatsApp (Konfirmasi, Pengingat, Terima Kasih)"
+                      >
+                        <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Quick Share</span>
+                      </button>
+                    )}
                   </div>
 
                   {/* Right: State Transition Buttons */}
@@ -484,12 +544,25 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                       </button>
                     )}
 
-                    {/* STATUS 3: SEDANG DISEWA -> Tukar Unit (D-19) ATAU Selesai (D-27) */}
+                    {/* STATUS 3: SEDANG DISEWA -> Tukar Unit (D-19), Masuk Servis (F-08), ATAU Selesai (D-27) */}
                     {b.status === 'ryokou_disewa' && (
                       <>
                         <button
+                          onClick={() => {
+                            const reason = prompt('Alasan unit dialihkan ke servis (mis. ban bocor/kelistrikan):', 'Perawatan mekanis darurat');
+                            if (reason !== null && onSendToService) {
+                              onSendToService(b.id, reason);
+                            }
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-orange-950/80 hover:bg-orange-900 border border-orange-700/60 text-orange-300 text-xs font-semibold flex items-center gap-1 transition"
+                          title="Alihkan unit ke status Servis (F-08)"
+                        >
+                          <Wrench className="w-3.5 h-3.5 text-orange-400" />
+                          <span>Diservis</span>
+                        </button>
+                        <button
                           onClick={() => onOpenExchangeModal(b)}
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition"
+                          className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition"
                           title="Tukar unit motor untuk sewa berjalan atau perawatan di jalan (D-19)"
                         >
                           <Repeat className="w-3.5 h-3.5" />
@@ -505,7 +578,29 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                       </>
                     )}
 
-                    {/* STATUS 4: SELESAI */}
+                    {/* STATUS 4: DISERVIS (F-08) */}
+                    {b.status === 'ryokou_diservis' && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => onReturnFromService && onReturnFromService(b.id, 'ryokou_disewa')}
+                          className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1 shadow-md transition"
+                          title="Servis selesai, lanjutkan sewa penyewa"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>Lanjut Sewa</span>
+                        </button>
+                        <button
+                          onClick={() => onOpenFinishModal(b)}
+                          className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow-md transition"
+                          title="Selesaikan kontrak sewa"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>Selesaikan Sewa</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* STATUS 5: SELESAI */}
                     {b.status === 'ryokou_selesai' && (
                       <span className="text-xs text-slate-400 font-semibold flex items-center gap-1">
                         <CheckCircle className="w-4 h-4 text-emerald-400" />
