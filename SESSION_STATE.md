@@ -17,9 +17,9 @@ Format dibaca skrip `scripts/zlce/zlce-check.py`; jangan ubah nama field, kolom,
 
 ## 1. STATUS AKTIF
 
-* **Timestamp Audit:** 2026-10-25 09:10:00 WIB
+* **Timestamp Audit:** 2026-10-25 11:22:00 WIB
 * **Cabang Git:** `main`
-* **Task Terakhir DONE:** `TASK-022`
+* **Task Terakhir DONE:** `TASK-024`
 * **Task Aktif:** `-`
 * **Status Task Aktif:** `DONE`
 * **Task Berikutnya:** `-`
@@ -52,6 +52,8 @@ Format dibaca skrip `scripts/zlce/zlce-check.py`; jangan ubah nama field, kolom,
 | `TASK-020` | Integritas Database ID, Kuota LocalStorage, Redaksi NIK & Keamanan Kunci | TASK-019 | DONE | SaveResult QuotaExceeded, storage.persist(), redactNik 16-digit regex masking, sequential booking & unit ID generation, sanitized JSON export; tsx test pass, lint 0 error | ya |
 | `TASK-021` | Keandalan Integrasi Telegram, Google Sheets, Rumus Denda & Normalisasi WA | TASK-020 | DONE | escHtml active, Telegram actionable URLs active, csvCell formula injection neutralization active, text/plain GAS header, returnEpoch fallback safe, dynamic jumlahHelm in WA; tsx test pass, lint 0 error | ya |
 | `TASK-022` | Mobile PWA Viewport, Navigasi Sticky, Touch Target & Repo Hygiene | TASK-021 | DONE | Mobile PWA viewport 100dvh, user-scalable accessibility, sticky bottom nav with pb-safe-area-inset, touch targets >= 48px, repo hygiene clean; build production lolos | ya |
+| `TASK-023` | Remediasi Integritas ZLCE, Parser WA & Hardening Sistem | TASK-022 | DONE | Parser WA multi-regex 13-poin, akumulasi warnings informatif, ZLCE 23 task valid; build & lint 0 error | ya |
+| `TASK-024` | Suite Pengujian Otomatis End-to-End Logika Bisnis & Regresi | TASK-023 | DONE | scripts/test-engine.ts 10/10 suite pass (31 assertions), npm test aktif; lint 0 error, build lolos | ya |
 
 Bukti Verifikasi: ringkasan + lokasi bukti (mis. "lint 0 error, 12/12 test pass"). `DONE` tanpa bukti dan `Disetujui: ya` tidak valid.
 
@@ -116,6 +118,8 @@ Status: `OPEN | CONFIRMED | REJECTED | ANSWERED`.
 
 ## 7. LOG AUDIT (terbaru di atas; arsipkan entri lama ke `docs/archive/`)
 
+* **2026-10-25 11:22:00 WIB:** TASK-024 selesai; Implementasi skrip suite pengujian otomatis scripts/test-engine.ts yang mencakup 10 subsystem logika bisnis (WIB epoch, parser chat WA 13 poin & warnings, tarif dinamis, turnaround buffer 60 menit, guarded state machine, kalkulasi denda keterlambatan toleransi 60 menit, sensor NIK 16 digit, ID & booking sequence tanpa tabrakan, proteksi formula injection CSV Sheets, dan formatting HTML alert Telegram), penambahan script npm test pada package.json, 31/31 assertions lolos 100%, kompilasi TypeScript dan build produksi sukses TASK-024.
+* **2026-10-25 11:15:00 WIB:** TASK-023 selesai; Penguatan parser WhatsApp (whatsappChatParser.ts) dengan dukungan multi-pattern regex toleran 13 poin baku, akumulasi array warnings informatif bila field wajib kosong/tidak valid, render alert warnings di NewBookingModal.tsx, sinkronisasi dokumen kontrol ZLCE, seluruh 23 task tuntas dengan status DONE, kompilasi TypeScript dan build produksi lolos 0 error.
 * **2026-10-25 09:10:00 WIB:** TASK-022 selesai; Penguatan viewport PWA Android (100dvh & user-scalable), navigasi sticky bottom bar dengan safe area inset, touch target tombol menu >= 48px, sanitasi seed data bersih bebas PII/token rahasia, seluruh 23 temuan review F-01 s/d F-23 tuntas 100%, kompilasi produksi sukses, dan seluruh 22 task ZLCE selesai TASK-022.
 * **2026-10-25 09:00:00 WIB:** TASK-021 selesai; Penguatan escaping escHtml pada notifikasi HTML Telegram Bot, tombol aksi inline actionable direct links (WA & Google Maps), pencegahan Formula Injection pada sel CSV Google Sheets dengan csvCell, header text/plain;charset=utf-8 untuk bypass preflight CORS GAS, perbaikan fallback returnEpoch rumus denda keterlambatan (F-17), serta dinamika jumlahHelm (1 atau 2) pada seluruh template WhatsApp selesai TASK-021.
 * **2026-10-25 08:50:00 WIB:** TASK-020 selesai; Penanganan kuota LocalStorage SaveResult, aktivasi navigator.storage.persist(), sensor NIK 16 digit regex masking (************XXXX), generator ID numerik nextId & generateBookingNumber maxSeq+1 bebas bentrok, sanitasi kredensial ekspor cadangan JSON, dan guard F-11 catatan servis selesai TASK-020.

@@ -153,6 +153,17 @@ function cleanLocation(loc: string): string {
   return trimmed;
 }
 
+function extractFieldContent(line: string, patterns: RegExp[]): string | null {
+  for (const pat of patterns) {
+    const match = line.match(pat);
+    if (match && match[1]) {
+      const cleaned = match[1].replace(/^[\s:*_~-]+/, '').replace(/[\s*_~-]+$/, '').trim();
+      if (cleaned) return cleaned;
+    }
+  }
+  return null;
+}
+
 export function parseWhatsAppBookingChat(rawText: string): ParsedBookingChat {
   const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
 
@@ -179,22 +190,31 @@ export function parseWhatsAppBookingChat(rawText: string): ParsedBookingChat {
     const lower = line.toLowerCase();
 
     // 1. Nama
-    if (lower.startsWith('1.') || lower.includes('nama :') || lower.includes('nama:')) {
-      const parts = line.split(/(?:1\.\s*nama\s*:|nama\s*:)/i);
-      if (parts[1]) nama = parts[1].trim();
+    if (lower.startsWith('1.') || lower.includes('nama :') || lower.includes('nama:') || lower.includes('*nama')) {
+      const res = extractFieldContent(line, [
+        /(?:1\.\s*nama\s*[:=]|nama\s*[:=])\s*(.*)/i,
+        /\*nama\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) nama = res;
     }
     // 2. Alamat sesuai KTP
     else if (lower.includes('alamat sesuai ktp') || lower.includes('alamat ktp') || lower.startsWith('2.')) {
-      const parts = line.split(/(?:alamat sesuai ktp\s*:|alamat ktp\s*:|2\.\s*alamat[a-z\s]*:)/i);
-      if (parts[1]) alamatKtp = parts[1].trim();
+      const res = extractFieldContent(line, [
+        /(?:alamat sesuai ktp\s*[:=]|alamat ktp\s*[:=]|2\.\s*alamat[a-z\s]*[:=])\s*(.*)/i,
+        /\*alamat ktp\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) alamatKtp = res;
     }
     // 3. ID Pendukung
     else if (lower.includes('id pendukung') || lower.startsWith('3.')) {
-      const parts = line.split(/(?:id pendukung[a-z\s()\/]*:|3\.\s*id[a-z\s()\/]*:)/i);
-      if (parts[1]) {
-        const val = parts[1].trim().toUpperCase();
+      const res = extractFieldContent(line, [
+        /(?:id pendukung[a-z\s()\/]*[:=]|3\.\s*id[a-z\s()\/]*[:=])\s*(.*)/i,
+        /\*id pendukung\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) {
+        const val = res.toUpperCase();
         if (val.includes('KTM')) idPendukung = 'KTM';
-        else if (val.includes('PASPOR')) idPendukung = 'Paspor';
+        else if (val.includes('PASPOR') || val.includes('PASSPORT')) idPendukung = 'Paspor';
         else if (val.includes('NPWP')) idPendukung = 'NPWP';
         else if (val.includes('BPJS')) idPendukung = 'BPJS';
         else if (val.includes('KARYAWAN') || val.includes('PEGAWAI')) idPendukung = 'Kartu_Pegawai';
@@ -203,59 +223,72 @@ export function parseWhatsAppBookingChat(rawText: string): ParsedBookingChat {
     }
     // 4. Alamat saat ini (rumah/kos/hotel)
     else if (lower.includes('alamat saat ini') || lower.includes('rumah/kos/hotel') || lower.startsWith('4.')) {
-      const parts = line.split(/(?:alamat saat ini[a-z\s:/]*:|4\.\s*alamat[a-z\s:/]*:)/i);
-      if (parts[1]) alamatSaatIni = parts[1].trim();
+      const res = extractFieldContent(line, [
+        /(?:alamat saat ini[a-z\s:/]*[:=]|4\.\s*alamat[a-z\s:/]*[:=])\s*(.*)/i,
+        /\*alamat saat ini\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) alamatSaatIni = res;
     }
     // 5. ID Sosmed
     else if (lower.includes('id sosmed') || lower.includes('sosmed') || lower.includes('instagram') || lower.includes('facebook') || lower.startsWith('5.')) {
-      const parts = line.split(/(?:id sosmed[a-z\s()\/]*:|5\.\s*id[a-z\s()\/]*:|instagram\s*:|facebook\s*:)/i);
-      if (parts[1]) {
-        idSosmed = parts[1].trim();
-      }
+      const res = extractFieldContent(line, [
+        /(?:id sosmed[a-z\s()\/]*[:=]|5\.\s*id[a-z\s()\/]*[:=]|instagram\s*[:=]|facebook\s*[:=])\s*(.*)/i,
+        /\*id sosmed\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) idSosmed = res;
     }
     // 6. No telp utama
-    else if ((lower.includes('no telp') || lower.includes('nomor telepon') || lower.includes('no wa')) && !lower.includes('darurat') && !lower.startsWith('7.')) {
-      const parts = line.split(/(?:no telp\s*:|nomor telepon\s*:|no wa\s*:|6\.\s*no[a-z\s]*:)/i);
-      if (parts[1]) nomorWa = parts[1].trim();
+    else if ((lower.includes('no telp') || lower.includes('nomor telepon') || lower.includes('no wa') || lower.includes('no. hp')) && !lower.includes('darurat') && !lower.startsWith('7.')) {
+      const res = extractFieldContent(line, [
+        /(?:no telp\s*[:=]|nomor telepon\s*[:=]|no wa\s*[:=]|no\.\s*hp\s*[:=]|6\.\s*no[a-z\s]*[:=])\s*(.*)/i,
+        /\*no telp\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) nomorWa = res;
     }
     // 7. No telp darurat
     else if (lower.includes('darurat') || lower.startsWith('7.')) {
-      const parts = line.split(/(?:darurat\s*:|7\.\s*no[a-z\s]*:)/i);
-      if (parts[1]) teleponDarurat = parts[1].trim();
+      const res = extractFieldContent(line, [
+        /(?:darurat\s*[:=]|7\.\s*no[a-z\s]*[:=])\s*(.*)/i,
+        /\*no telp darurat\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) teleponDarurat = res;
     }
 
     // 8. Jadwal mulai (Tgl & Jam Ambil)
     else if (lower.includes('jadwal mulai') || lower.startsWith('8.') || lower.includes('mulai sewa') || lower.includes('tgl/bln (mulai')) {
-      const parts = line.split(/(?:jadwal mulai[a-z\s()\/]*:|8\.\s*jadwal[a-z\s()\/]*:|:\s*)/i);
-      if (parts.length > 1) {
-        const text = parts[parts.length - 1].trim();
-        // Check if both date and time are in text (e.g. 24 Oktober 15.40)
-        startDateRaw = text;
-        const timePart = text.match(/\b\d{1,2}[.:]\d{2}\b/);
+      const res = extractFieldContent(line, [
+        /(?:jadwal mulai[a-z\s()\/]*[:=]|8\.\s*jadwal[a-z\s()\/]*[:=]|mulai sewa\s*[:=])\s*(.*)/i,
+        /\*jadwal mulai\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) {
+        startDateRaw = res;
+        const timePart = res.match(/\b\d{1,2}[.:]\d{2}\b/);
         if (timePart) {
           startTimeRaw = timePart[0];
         }
       }
     }
     else if (lower.includes('jam ambil') || (lower.includes('↗️') && lower.includes('jam'))) {
-      const parts = line.split(/:\s*/);
+      const parts = line.split(/[:=]\s*/);
       if (parts[1]) startTimeRaw = parts[1].trim();
     }
 
     // 9. Jadwal selesai (Tgl & Jam Kembali)
     else if (lower.includes('jadwal selesai') || lower.startsWith('9.') || (lower.includes('pengembalian') && (lower.includes('hari/tgl') || lower.includes('tgl/bln')))) {
-      const parts = line.split(/(?:jadwal selesai[a-z\s()\/]*:|9\.\s*jadwal[a-z\s()\/]*:|:\s*)/i);
-      if (parts.length > 1) {
-        const text = parts[parts.length - 1].trim();
-        endDateRaw = text;
-        const timePart = text.match(/\b\d{1,2}[.:]\d{2}\b/);
+      const res = extractFieldContent(line, [
+        /(?:jadwal selesai[a-z\s()\/]*[:=]|9\.\s*jadwal[a-z\s()\/]*[:=]|pengembalian\s*[:=])\s*(.*)/i,
+        /\*jadwal selesai\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) {
+        endDateRaw = res;
+        const timePart = res.match(/\b\d{1,2}[.:]\d{2}\b/);
         if (timePart) {
           endTimeRaw = timePart[0];
         }
       }
     }
     else if (lower.includes('jam pengembalian') || (lower.includes('↙️') && lower.includes('jam'))) {
-      const parts = line.split(/(?:jam[a-z\s]*[:\s]|:\s*)/i);
+      const parts = line.split(/(?:jam[a-z\s]*[:=\s]|[:=]\s*)/i);
       if (parts.length > 1) {
         endTimeRaw = parts[parts.length - 1].trim();
       }
@@ -263,27 +296,38 @@ export function parseWhatsAppBookingChat(rawText: string): ParsedBookingChat {
 
     // 10. Lokasi pengantaran
     else if (lower.includes('lokasi pengantaran') || lower.startsWith('10.') || lower.includes('lokasi delivery')) {
-      const parts = line.split(/(?:lokasi pengantaran\s*:|10\.\s*lokasi[a-z\s]*:|lokasi delivery\s*:|:\s*)/i);
-      if (parts.length > 1) lokasiDelivery = parts[parts.length - 1].trim();
+      const res = extractFieldContent(line, [
+        /(?:lokasi pengantaran\s*[:=]|10\.\s*lokasi[a-z\s]*[:=]|lokasi delivery\s*[:=])\s*(.*)/i,
+        /\*lokasi pengantaran\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) lokasiDelivery = res;
     }
 
     // 11. Lokasi penjemputan
     else if (lower.includes('lokasi penjemputan') || lower.startsWith('11.') || lower.includes('lokasi pengembalian')) {
-      const parts = line.split(/(?:lokasi penjemputan\s*:|11\.\s*lokasi[a-z\s]*:|lokasi pengembalian[a-z\s]*:|:\s*)/i);
-      if (parts.length > 1) lokasiPengembalian = parts[parts.length - 1].trim();
+      const res = extractFieldContent(line, [
+        /(?:lokasi penjemputan\s*[:=]|11\.\s*lokasi[a-z\s]*[:=]|lokasi pengembalian[a-z\s]*[:=])\s*(.*)/i,
+        /\*lokasi penjemputan\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) lokasiPengembalian = res;
     }
 
     // 12. Model unit
     else if (lower.includes('model unit') || lower.startsWith('12.') || lower.includes('type unit') || lower.includes('jenis motor')) {
-      const parts = line.split(/(?:model unit\s*:|12\.\s*model[a-z\s]*:|type unit[a-z\s()]*:|jenis motor\s*:|:\s*)/i);
-      if (parts.length > 1) jenisMotorKeyword = parts[parts.length - 1].trim();
+      const res = extractFieldContent(line, [
+        /(?:model unit\s*[:=]|12\.\s*model[a-z\s]*[:=]|type unit[a-z\s()]*[:=]|jenis motor\s*[:=])\s*(.*)/i,
+        /\*model unit\*\s*[:=]?\s*(.*)/i,
+      ]);
+      if (res) jenisMotorKeyword = res;
     }
 
     // 13. Jumlah helm
     else if (lower.includes('jumlah helm') || lower.startsWith('13.') || lower.includes('helm')) {
-      const parts = line.split(/(?:jumlah helm\s*:|13\.\s*jumlah[a-z\s]*:|helm\s*:|:\s*)/i);
-      if (parts.length > 1) {
-        const count = parseInt(parts[parts.length - 1].replace(/[^0-9]/g, ''), 10);
+      const res = extractFieldContent(line, [
+        /(?:jumlah helm\s*[:=]|13\.\s*jumlah[a-z\s]*[:=]|helm\s*[:=])\s*(.*)/i,
+      ]);
+      if (res) {
+        const count = parseInt(res.replace(/[^0-9]/g, ''), 10);
         if (!isNaN(count) && count > 0) jumlahHelm = count;
       }
     }
@@ -310,6 +354,27 @@ export function parseWhatsAppBookingChat(rawText: string): ParsedBookingChat {
 
   const catatanRapi = noteParts.join(' | ');
 
+  // Generate informative warnings
+  const warnings: string[] = [];
+  if (!nama) {
+    warnings.push('Nama penyewa tidak ditemukan di teks chat (mohon isi manual).');
+  }
+  if (!nomorWa) {
+    warnings.push('Nomor WhatsApp penyewa belum terdeteksi (wajib diisi).');
+  }
+  if (!startDateRaw) {
+    warnings.push('Jadwal mulai sewa belum terdeteksi dari chat (menggunakan estimasi awal).');
+  }
+  if (!endDateRaw) {
+    warnings.push('Jadwal selesai sewa belum terdeteksi dari chat (menggunakan estimasi pengembalian).');
+  }
+  if (!jenisMotorKeyword) {
+    warnings.push('Model motor spesifik belum terdeteksi, silakan pilih model motor di form.');
+  }
+  if (!alamatSaatIni && !lokasiDelivery) {
+    warnings.push('Alamat saat ini / lokasi pengantaran belum terdeteksi (diset default Apartemen Begawan Malang).');
+  }
+
   return {
     nama: nama || '',
     alamatKtp: alamatKtp || '',
@@ -325,6 +390,7 @@ export function parseWhatsAppBookingChat(rawText: string): ParsedBookingChat {
     jenisMotorKeyword: jenisMotorKeyword || 'scoopy',
     jumlahHelm,
     catatanRapi,
+    warnings,
   };
 }
 

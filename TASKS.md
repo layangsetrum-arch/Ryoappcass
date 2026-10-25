@@ -18,6 +18,7 @@ Definisi task. **Status task tidak ditulis di sini**; status ada di `SESSION_STA
 * **FASE 9: Integritas Jadwal, Mesin Transisi Terproteksi & Redaksi Keamanan** (`TASK-018`, `TASK-019`, `TASK-020`)
 * **FASE 10: Robustness Integrasi Eksternal & Optimasi Mobile PWA** (`TASK-021`, `TASK-022`)
 * **FASE 11: Remediasi Integritas ZLCE, Parser WA & Hardening Sistem** (`TASK-023`)
+* **FASE 12: Pengujian Otomatis End-to-End & Verifikasi Regresi** (`TASK-024`)
 
 ---
 
@@ -378,4 +379,40 @@ Definisi task. **Status task tidak ditulis di sini**; status ada di `SESSION_STA
   4. `package.json` dan data contoh fiktif bersih dan higienis.
 * **Test Case:** Mobile viewport audit, touch target ergonomics & production build
 * **Metode Verifikasi:** Jalankan `npm run lint`, `npm run build`, dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-023: Remediasi Integritas ZLCE, Parser WA & Hardening Sistem
+* **Fase:** FASE 11
+* **Deskripsi:** Melakukan penguatan komprehensif pada parser WhatsApp chat (`whatsappChatParser.ts`) dengan ekstraksi fleksibel 13 poin baku berbasis multi-pattern regex, akumulasi peringatan field kosong (`warnings`), tampilan peringatan di `NewBookingModal.tsx`, sinkronisasi dokumen kontrol ZLCE, serta verifikasi zero-error pada pipeline build & linter.
+* **Dependensi:** `TASK-022`
+* **File:** `src/utils/whatsappChatParser.ts`, `src/components/NewBookingModal.tsx`, `TASKS.md`, `SESSION_STATE.md`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`, `TASKS.md`
+* **Acceptance Criteria:**
+  1. `parseWhatsAppBookingChat` mengekstrak teks chat WA 13 poin dengan berbagai variasi format dan menghasilkan array `warnings` informatif bila data belum lengkap.
+  2. Banner peringatan hasil baca chat tampil di modal `NewBookingModal.tsx` saat ada field yang perlu dilengkapi operator.
+  3. Skrip `zlce-check.py` memvalidasi seluruh 23 task dengan status OK (0 error, 0 warn).
+  4. Kompilasi `npm run lint` (`tsc --noEmit`) dan `npm run build` berjalan 0 error.
+* **Test Case:** Parser chat format tolerance, warnings accumulation & ZLCE 23-task validation
+* **Metode Verifikasi:** Jalankan `npm run lint`, `npm run build`, dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-024: Suite Pengujian Otomatis End-to-End Logika Bisnis & Regresi
+* **Fase:** FASE 12
+* **Deskripsi:** Membangun berkas pengujian otomatis `scripts/test-engine.ts` dan menambahkan script `"test": "tsx scripts/test-engine.ts"` pada `package.json` untuk menguji secara otomatis seluruh 10 modul logika bisnis kritis: integritas waktu WIB, parser chat WhatsApp 13 field & warnings, tarif sewa dinamis (short-rent, harian, mingguan, bulanan, multi-hari), turnaround buffer 60 menit & deteksi bentrok jadwal, transisi guarded state machine 5-status, kalkulasi denda keterlambatan dengan toleransi 60 menit, redaksi regex sensor NIK 16 digit, pembuatan ID & nomor booking berurutan tanpa tabrakan, netralisasi formula injection Google Sheets, serta escaping HTML Telegram Bot.
+* **Dependensi:** `TASK-023`
+* **File:** `scripts/test-engine.ts`, `package.json`, `TASKS.md`, `SESSION_STATE.md`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`, `TASKS.md`
+* **Acceptance Criteria:**
+  1. Berkas pengujian `scripts/test-engine.ts` mencakup 10 suite pengujian terisolasi untuk seluruh modul inti logika bisnis.
+  2. Perintah `npm test` mengeksekusi suite tes dan menghasilkan 10/10 PASS tanpa kegagalan assertion.
+  3. Skrip `zlce-check.py` memvalidasi seluruh 24 task dengan status OK (0 error, 0 warn).
+  4. Kompilasi `npm run lint` (`tsc --noEmit`) dan `npm run build` berjalan 0 error.
+* **Test Case:** 10/10 automated business logic regression suites pass
+* **Metode Verifikasi:** Jalankan `npm test`, `npm run lint`, `npm run build`, dan `python3 scripts/zlce/zlce-check.py .`.
+
+
 
