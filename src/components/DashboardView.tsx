@@ -13,6 +13,8 @@ import {
 } from '../services/bookingEngine';
 import { getUserEffectivePermissions } from '../utils/userPermissions';
 import { CountdownAlertBanner } from './CountdownAlertBanner';
+import { RevenueTrendChart } from './RevenueTrendChart';
+import { DailyOperationalLogSection } from './DailyOperationalLogSection';
 import {
   Bike,
   Compass,
@@ -28,17 +30,19 @@ import {
   Wrench,
   MessageCircle,
   Lock,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface DashboardViewProps {
   db: RyokoDatabase;
   activeUser?: AppUser;
-  onNavigateTab: (tab: 'dashboard' | 'bookings' | 'tracking' | 'service' | 'fleet' | 'settings') => void;
+  onNavigateTab: (tab: 'dashboard' | 'bookings' | 'tracking' | 'service' | 'fleet' | 'reports' | 'settings') => void;
   onOpenNewBooking: () => void;
   onSelectBooking: (booking: BookingRecord) => void;
   onSelectTracking: (track: UnitTracking) => void;
   onSyncArmada: () => void;
   onOpenRecoveryWizard?: () => void;
+  onUpdateDatabase?: (updatedDb: RyokoDatabase, actionName: string, detail: string) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -50,6 +54,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectTracking,
   onSyncArmada,
   onOpenRecoveryWizard,
+  onUpdateDatabase,
 }) => {
   const permissions = getUserEffectivePermissions(activeUser);
   const canViewRevenue = permissions.canViewRevenue;
@@ -320,8 +325,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </p>
             </div>
 
-            {/* Period selector buttons */}
-            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs shrink-0 overflow-x-auto">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => onNavigateTab('reports')}
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-950/50 shrink-0"
+                title="Buka Laporan Kinerja Bulanan & Okupansi Armada"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Laporan Bulanan & Okupansi</span>
+                <ArrowRight className="w-3 h-3 text-emerald-200" />
+              </button>
+
+              {/* Period selector buttons */}
+              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs shrink-0 overflow-x-auto">
               <button
                 onClick={() => setRevenuePeriod('hari_ini')}
                 className={`px-2.5 py-1 rounded-lg font-medium transition ${
@@ -364,6 +380,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </button>
             </div>
           </div>
+        </div>
 
           {/* Custom Date Range Picker (shown when kustom) */}
           {revenuePeriod === 'kustom' && (
@@ -423,6 +440,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </span>
             </div>
           </div>
+
+          {/* Recharts Visualizer: Tren Pendapatan 7 Hari Terakhir & Pola Permintaan */}
+          <div className="pt-1">
+            <RevenueTrendChart db={db} />
+          </div>
         </div>
       ) : (
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 text-center space-y-2">
@@ -435,6 +457,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
         </div>
       )}
+
+      {/* Log Operasional Harian & Insiden Lapangan (LocalStorage Sync) */}
+      <DailyOperationalLogSection
+        db={db}
+        activeUser={activeUser}
+        onUpdateDatabase={(updatedDb, actionName, detail) => {
+          if (onUpdateDatabase) {
+            onUpdateDatabase(updatedDb, actionName, detail);
+          }
+        }}
+      />
 
       {/* Two Column Section: Stock Status & Pending Action Strip */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

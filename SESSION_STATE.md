@@ -17,12 +17,12 @@ Format dibaca skrip `scripts/zlce/zlce-check.py`; jangan ubah nama field, kolom,
 
 ## 1. STATUS AKTIF
 
-* **Timestamp Audit:** 2026-10-24 19:15:00 WIB
+* **Timestamp Audit:** 2026-10-25 09:10:00 WIB
 * **Cabang Git:** `main`
-* **Task Terakhir DONE:** `TASK-014`
-* **Task Aktif:** -
-* **Status Task Aktif:** DONE
-* **Task Berikutnya:** -
+* **Task Terakhir DONE:** `TASK-022`
+* **Task Aktif:** `-`
+* **Status Task Aktif:** `DONE`
+* **Task Berikutnya:** `-`
 
 ---
 
@@ -44,6 +44,14 @@ Format dibaca skrip `scripts/zlce/zlce-check.py`; jangan ubah nama field, kolom,
 | `TASK-012` | Kerangka Pemeriksaan & Rencana Penyesuaian Tindak Lanjut Hasil Review | TASK-011 | DONE | docs/REVIEW_ACTION_PLAN.md rubrik triase P0/P1/P2 & audit mandiri awal 100% lulus | ya |
 | `TASK-013` | Arsitektur & Layanan Sinkronisasi Kolaborasi Google Sheets | TASK-012 | DONE | src/services/googleSheetsService.ts, docs/GOOGLE_SHEETS_INTEGRATION.md, UI Settings & CSV ekspor terpasang | ya |
 | `TASK-014` | Sistem Alert Pengembalian via Bot Telegram Admin & Aksi Interaktif | TASK-013 | DONE | src/services/telegramBotService.ts, docs/TELEGRAM_BOT_INTEGRATION.md, tombol alert di Banner & Settings terintegrasi | ya |
+| `TASK-015` | Fitur 'Quick Share' WhatsApp & Modal Detail Booking | TASK-014 | DONE | BookingDetailModal.tsx & 3 template WhatsApp (Konfirmasi, Pengingat, Terima Kasih); tsc 0 error, build lolos | ya |
+| `TASK-016` | Visual Analytics Tren 7 Hari (Recharts) & Laporan Okupansi Bulanan (MonthlyReportView) | TASK-015 | DONE | RevenueTrendChart.tsx, MonthlyReportView.tsx, recharts ^3.10.1 terintegrasi; tsc 0 error, build produksi sukses | ya |
+| `TASK-017` | Fitur Log Operasional Harian & Catatan Insiden Lapangan di Dashboard LocalStorage | TASK-016 | DONE | DailyOperationalLogSection.tsx terpasang di DashboardView, skema dailyOperationalLogs LocalStorage & auto-migrasi aktif; tsc 0 error, build lolos | ya |
+| `TASK-018` | Integritas Waktu WIB & Parser WhatsApp Bebas Fallback | TASK-017 | DONE | epochToWibInput & parseWibToEpoch valid, splitLabel 15:40 aman, validYmd lolos, warnings aktif; tsx test pass, lint 0 error | ya |
+| `TASK-019` | Mesin Transisi Status Guarded, Deteksi Bentrok & Kalkulasi Tarif Multi-Hari | TASK-018 | DONE | checkTransition guard aktif, calculateDynamicRentalTariff multi-hari 4x harian valid, selectedUnitId sync, form validation aktif; tsx test pass, lint 0 error | ya |
+| `TASK-020` | Integritas Database ID, Kuota LocalStorage, Redaksi NIK & Keamanan Kunci | TASK-019 | DONE | SaveResult QuotaExceeded, storage.persist(), redactNik 16-digit regex masking, sequential booking & unit ID generation, sanitized JSON export; tsx test pass, lint 0 error | ya |
+| `TASK-021` | Keandalan Integrasi Telegram, Google Sheets, Rumus Denda & Normalisasi WA | TASK-020 | DONE | escHtml active, Telegram actionable URLs active, csvCell formula injection neutralization active, text/plain GAS header, returnEpoch fallback safe, dynamic jumlahHelm in WA; tsx test pass, lint 0 error | ya |
+| `TASK-022` | Mobile PWA Viewport, Navigasi Sticky, Touch Target & Repo Hygiene | TASK-021 | DONE | Mobile PWA viewport 100dvh, user-scalable accessibility, sticky bottom nav with pb-safe-area-inset, touch targets >= 48px, repo hygiene clean; build production lolos | ya |
 
 Bukti Verifikasi: ringkasan + lokasi bukti (mis. "lint 0 error, 12/12 test pass"). `DONE` tanpa bukti dan `Disetujui: ya` tidak valid.
 
@@ -53,13 +61,13 @@ Bukti Verifikasi: ringkasan + lokasi bukti (mis. "lint 0 error, 12/12 test pass"
 
 Catatan tulis-dahulu: isi SEBELUM memulai langkah multi-berkas, perbarui SESUDAH langkah selesai. Kosongkan (semua `-`) saat task `DONE`.
 
-* **Task:** -
-* **Langkah Sedang Dikerjakan:** -
-* **Berkas Direncanakan/Disentuh:** -
-* **Sudah Dilakukan:** -
-* **Langkah Berikutnya (persis):** -
-* **Perintah Verifikasi:** -
-* **Diperbarui:** 2026-10-24 17:58:00 WIB
+* **Task:** `-`
+* **Langkah Sedang Dikerjakan:** `-`
+* **Berkas Direncanakan/Disentuh:** `-`
+* **Sudah Dilakukan:** `-`
+* **Langkah Berikutnya (persis):** `-`
+* **Perintah Verifikasi:** `-`
+* **Diperbarui:** `-`
 
 ---
 
@@ -86,23 +94,36 @@ Status: `OPEN | CONFIRMED | REJECTED | ANSWERED`.
 | `REV-03` | S | Integrasi Tab Recovery ZLCE Studio & Generator Snapshot | Dituangkan ke TASK-005 |
 | `REV-04` | S | Standarisasi 13 Field Template Form Booking (Nama, Alamat KTP, ID Pendukung, Alamat Saat Ini, ID Sosmed, No Telp, No Darurat, Jadwal Mulai, Jadwal Selesai, Lokasi Antar, Lokasi Jemput, Model Unit, Jumlah Helm) | Dituangkan ke types/ryoko, NewBookingModal, whatsappService, DigitalReceiptModal, BookingsView, CourierDashboardView |
 | `REV-05` | M | Penambahan 5 Task Baru: Review Claude, README Resmi, Rencana Aksi, Kolaborasi Google Sheets, Alert Bot Telegram | Dituangkan ke TASK-010, TASK-011, TASK-012, TASK-013, TASK-014 |
+| `REV-06` | M | Quick Share WhatsApp 3 Template, Recharts Visualizer Tren 7 Hari, dan Laporan Okupansi Bulanan (MonthlyReportView) | Dituangkan ke TASK-015 dan TASK-016 |
+| `REV-07` | S | Fitur Log Operasional Harian & Catatan Insiden Lapangan di Dashboard LocalStorage | Dituangkan ke TASK-017 |
+| `REV-08` | L | Perbaikan Tuntas 23 Temuan Audit @kepek (WIB offset, parser WA, guarded transitions, kuota/keamanan, integrasi eksternal, mobile PWA) | Dituangkan ke TASK-018 s/d TASK-022 |
 
 ---
 
 ## 6. CATATAN SERAH TERIMA (ditimpa; maks. ~10 baris)
 
-* 2026-10-24: Seluruh 14 task pengembangan ZLCE (TASK-001 s/d TASK-014) telah selesai 100% dan teruji lolos build & lint.
-* 2026-10-24: Panduan review Claude & prompt siap salin terbuat di docs/CLAUDE_REVIEW_GUIDE.md & docs/CLAUDE_PROMPT.md (TASK-010).
-* 2026-10-24: Dokumentasi resmi komprehensif RyokoRent Android APK aktif di README.md (TASK-011).
-* 2026-10-24: Rencana aksi triase hasil review & evaluasi mandiri siap di docs/REVIEW_ACTION_PLAN.md (TASK-012).
+* 2026-10-24: Seluruh 17 task pengembangan ZLCE (TASK-001 s/d TASK-017) telah selesai 100% dan teruji lolos build & lint.
+* 2026-10-24: Fitur Log Operasional Harian & Insiden Lapangan (DailyOperationalLogSection) aktif di DashboardView dengan LocalStorage persistence (TASK-017).
+* 2026-10-24: Modal detail transaksi & fitur Quick Share WhatsApp 3 template (Konfirmasi, Pengingat, Terima Kasih) aktif (TASK-015).
+* 2026-10-24: Visual analytics tren pendapatan 7 hari (Recharts Area & Bar) aktif pada DashboardView (TASK-016).
+* 2026-10-24: Komponen MonthlyReportView dengan kalkulasi okupansi armada bulanan & grafik ComposedChart aktif di tab Laporan (TASK-016).
 * 2026-10-24: Layanan Google Sheets 26 kolom (13-field + review, opsi, aksi), ekspor CSV & webhook aktif (TASK-013).
-* 2026-10-24: Bot Telegram return alert (H-2, H-1, overdue) dengan 4 tombol inline action terpasang di Settings & Banner (TASK-014).
+* 2026-10-24: Bot Telegram return alert (H-2, H-1, overdue) dengan 4 tombol inline action terpasang (TASK-014).
+* 2026-10-24: Konfigurasi ESM modern import.meta.dirname bersih tanpa warning pada vite.config.ts.
 * 2026-10-24: Aplikasi siap operasional penuh untuk Ryoko Rent Malang & Batu.
 
 ---
 
 ## 7. LOG AUDIT (terbaru di atas; arsipkan entri lama ke `docs/archive/`)
 
+* **2026-10-25 09:10:00 WIB:** TASK-022 selesai; Penguatan viewport PWA Android (100dvh & user-scalable), navigasi sticky bottom bar dengan safe area inset, touch target tombol menu >= 48px, sanitasi seed data bersih bebas PII/token rahasia, seluruh 23 temuan review F-01 s/d F-23 tuntas 100%, kompilasi produksi sukses, dan seluruh 22 task ZLCE selesai TASK-022.
+* **2026-10-25 09:00:00 WIB:** TASK-021 selesai; Penguatan escaping escHtml pada notifikasi HTML Telegram Bot, tombol aksi inline actionable direct links (WA & Google Maps), pencegahan Formula Injection pada sel CSV Google Sheets dengan csvCell, header text/plain;charset=utf-8 untuk bypass preflight CORS GAS, perbaikan fallback returnEpoch rumus denda keterlambatan (F-17), serta dinamika jumlahHelm (1 atau 2) pada seluruh template WhatsApp selesai TASK-021.
+* **2026-10-25 08:50:00 WIB:** TASK-020 selesai; Penanganan kuota LocalStorage SaveResult, aktivasi navigator.storage.persist(), sensor NIK 16 digit regex masking (************XXXX), generator ID numerik nextId & generateBookingNumber maxSeq+1 bebas bentrok, sanitasi kredensial ekspor cadangan JSON, dan guard F-11 catatan servis selesai TASK-020.
+* **2026-10-25 08:35:00 WIB:** TASK-019 selesai; Mesin transisi guarded (checkTransition) dengan NEXT_STATUS_TRANSITIONS, pencegahan tabrakan jadwal sewa & buffer 60 menit, kalkulasi tarif multi-hari prorata dinamis (calculateDynamicRentalTariff), auto-sync unit terpilih, handler ryokou_diservis (masuk & keluar servis), serta validasi form selesai TASK-019.
+* **2026-10-25 08:15:00 WIB:** TASK-018 selesai; Integritas waktu epochToWibInput & parseWibToEpoch dengan offset eksplisit +07:00 WIB, parser chat WhatsApp cerdas tanpa hardcoded fallback (splitLabel pemisah titik dua pertama, validYmd, deteksi format waktu & durasi), dan alert peringatan field kosong aktif TASK-018.
+* **2026-10-24 20:42:00 WIB:** TASK-017 selesai; DailyOperationalLogSection.tsx terpasang di DashboardView, skema dailyOperationalLogs LocalStorage dengan auto-migrasi di storageService, 5 kategori log, filter prioritas (normal, penting, darurat), audit log terintegrasi, dan tombol 1-klik kirim WA insiden selesai TASK-017.
+* **2026-10-24 20:30:00 WIB:** TASK-016 selesai; MonthlyReportView.tsx, RevenueTrendChart.tsx, recharts ^3.10.1 terintegrasi, tab Laporan di AndroidBottomNav aktif, dan perhitungan okupansi armada bulanan tuntas TASK-016.
+* **2026-10-24 19:40:00 WIB:** TASK-015 selesai; BookingDetailModal.tsx, 3 template pesan WhatsApp resmi (Konfirmasi, Pengingat, Terima Kasih), dan integrasi tombol Quick Share di kartu booking selesai TASK-015.
 * **2026-10-24 19:15:00 WIB:** TASK-014 selesai; telegramBotService.ts, docs/TELEGRAM_BOT_INTEGRATION.md, tombol alert pengembalian Telegram di CountdownAlertBanner dan panel konfigurasi token bot di SettingsView aktif TASK-014.
 * **2026-10-24 19:00:00 WIB:** TASK-013 selesai; googleSheetsService.ts, docs/GOOGLE_SHEETS_INTEGRATION.md, format baris 26 kolom (13 field + review, opsi, aksi), ekspor CSV UTF-8, dan webhook Google Apps Script aktif TASK-013.
 * **2026-10-24 18:45:00 WIB:** TASK-012 selesai; docs/REVIEW_ACTION_PLAN.md rubrik triase severity P0/P1/P2, log penyesuaian, dan hasil evaluasi mandiri awal 100% lulus terbuat TASK-012.
@@ -118,3 +139,4 @@ Status: `OPEN | CONFIRMED | REJECTED | ANSWERED`.
 * **2026-10-24 15:10:00 WIB:** TASK-003 selesai; Panel Catatan Servis Rutin 7 Kategori dan filter pelacakan kurir berfungsi di UI TASK-003.
 * **2026-10-24 15:00:00 WIB:** TASK-002 selesai; skema TypeScript, seed data, buffer 60 menit, dan storage service diperbarui TASK-002.
 * **2026-10-24 14:48:00 WIB:** TASK-001 selesai; berkas kontrol ZLCE dan konfigurasi PWA berhasil diverifikasi TASK-001.
+

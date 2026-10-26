@@ -1,7 +1,9 @@
 import { RyokoDatabase, AuditLogItem } from '../types/ryoko';
 import { INITIAL_DATABASE } from '../data/seedData';
 
-const STORAGE_KEY = 'ryokourent_db_v1';
+export const STORAGE_KEY = 'ryokourent_db_v1';
+
+export type SaveResult = { ok: true } | { ok: false; message: string };
 
 export function loadDatabase(): RyokoDatabase {
   try {
@@ -15,9 +17,19 @@ export function loadDatabase(): RyokoDatabase {
       saveDatabase(INITIAL_DATABASE);
       return INITIAL_DATABASE;
     }
+    // Auto-migrate settings if missing
+    if (!parsed.settings) {
+      parsed.settings = { ...INITIAL_DATABASE.settings };
+    } else {
+      parsed.settings = { ...INITIAL_DATABASE.settings, ...parsed.settings };
+    }
     // Auto-migrate serviceRecords if missing
     if (!parsed.serviceRecords) {
       parsed.serviceRecords = INITIAL_DATABASE.serviceRecords || [];
+    }
+    // Auto-migrate dailyOperationalLogs if missing
+    if (!parsed.dailyOperationalLogs || !Array.isArray(parsed.dailyOperationalLogs)) {
+      parsed.dailyOperationalLogs = INITIAL_DATABASE.dailyOperationalLogs || [];
     }
     // Auto-migrate users if missing
     if (!parsed.users || !Array.isArray(parsed.users) || parsed.users.length === 0) {
@@ -33,14 +45,7 @@ export function loadDatabase(): RyokoDatabase {
       }
       return m;
     });
-    // Ensure Ridho booking is present if fresh
-    if (INITIAL_DATABASE.bookings) {
-      INITIAL_DATABASE.bookings.forEach(ib => {
-        if (!parsed.bookings.some(b => b.id === ib.id || b.noBooking === ib.noBooking)) {
-          parsed.bookings.unshift(ib);
-        }
-      });
-    }
+
     return parsed;
   } catch (error) {
     console.error('Failed to load database from LocalStorage:', error);
@@ -48,12 +53,23 @@ export function loadDatabase(): RyokoDatabase {
   }
 }
 
-export function saveDatabase(db: RyokoDatabase): void {
+/**
+ * Menyimpan database ke LocalStorage dengan pelaporan status kuota (Snippet E - F-12)
+ */
+export function saveDatabase(db: RyokoDatabase): SaveResult {
   try {
     db.lastUpdated = new Date().toISOString();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    return { ok: true };
   } catch (error) {
-    console.error('Failed to save database to LocalStorage:', error);
+    const isQuota =
+      error instanceof DOMException &&
+      (error.name === 'QuotaExceededError' || error.code === 22);
+    const message = isQuota
+      ? 'Kapasitas LocalStorage browser penuh. Segera ekspor backup JSON dan bersihkan riwayat log.'
+      : 'Gagal menyimpan database ke LocalStorage.';
+    console.error(message, error);
+    return { ok: false, message };
   }
 }
 
@@ -62,19 +78,33 @@ export function resetDatabaseToDefault(): RyokoDatabase {
   return INITIAL_DATABASE;
 }
 
-export function exportDatabaseJSON(): string {
+/**
+ * Ekspor database ke JSON dengan opsi menyembunyikan token rahasia (Snippet E - F-13)
+ */
+export function exportDatabaseJSON(includeSecrets = false): string {
   const db = loadDatabase();
-  return JSON.stringify(db, null, 2);
+  const { telegramBotToken, googleSheetsWebhookUrl, ...safeSettings } = db.settings;
+  const settings = includeSecrets
+    ? db.settings
+    : { ...safeSettings, telegramBotToken: '', googleSheetsWebhookUrl: '' };
+  return JSON.stringify({ ...db, settings }, null, 2);
 }
 
+/**
+ * Impor database dari string JSON dengan validasi skema dasar dan merge settings (F-19)
+ */
 export function importDatabaseJSON(jsonStr: string): { success: boolean; message: string; db?: RyokoDatabase } {
   try {
     const parsed = JSON.parse(jsonStr) as RyokoDatabase;
     if (!parsed.motors || !Array.isArray(parsed.motors) || !parsed.units || !parsed.bookings) {
       return { success: false, message: 'Format file JSON tidak valid untuk database RyokoRent.' };
     }
+    parsed.settings = { ...INITIAL_DATABASE.settings, ...(parsed.settings || {}) };
     parsed.lastUpdated = new Date().toISOString();
-    saveDatabase(parsed);
+    const result = saveDatabase(parsed);
+    if (!result.ok) {
+      return { success: false, message: result.message };
+    }
     return { success: true, message: 'Database berhasil dipulihkan dari file cadangan.', db: parsed };
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Kesalahan parsing JSON';
@@ -86,7 +116,7 @@ export function getStorageUsage(): { bytes: number; kb: number; percentEstimate:
   try {
     const raw = localStorage.getItem(STORAGE_KEY) || '';
     const bytes = new Blob([raw]).size;
-    const kb = Math.round(bytes / 1024 * 10) / 10;
+    const kb = Math.round((bytes / 1024) * 10) / 10;
     // Typical LocalStorage limit is 5MB
     const percentEstimate = Math.min(100, Math.round((bytes / (5 * 1024 * 1024)) * 1000) / 10);
     return { bytes, kb, percentEstimate };
@@ -97,11 +127,15 @@ export function getStorageUsage(): { bytes: number; kb: number; percentEstimate:
 
 export function appendAuditLog(db: RyokoDatabase, aktivitas: string, detail: string): RyokoDatabase {
   const now = new Date();
-  const timeStr = now.toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }) + ' ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+  const timeStr =
+    now.toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }) +
+    ' ' +
+    now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) +
+    ' WIB';
 
   const newLog: AuditLogItem = {
     id: `aud-${Date.now().toString(36)}`,
@@ -111,8 +145,12 @@ export function appendAuditLog(db: RyokoDatabase, aktivitas: string, detail: str
     detail,
   };
 
-  const updatedLogs = [newLog, ...(db.settings.auditLogs || [])].slice(0, 50); // Keep last 50
-  db.settings.auditLogs = updatedLogs;
-  saveDatabase(db);
-  return db;
+  const updatedLogs = [newLog, ...(db.settings.auditLogs || [])].slice(0, 100);
+  return {
+    ...db,
+    settings: {
+      ...db.settings,
+      auditLogs: updatedLogs,
+    },
+  };
 }

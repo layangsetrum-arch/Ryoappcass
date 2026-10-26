@@ -26,7 +26,19 @@ export interface TelegramSendMessagePayload {
 }
 
 /**
- * Format pesan notifikasi pengembalian unit untuk Telegram Admin
+ * Escape string untuk format parse_mode HTML Telegram (F-15)
+ * Mencegah pesan gagal terkirim (400 Bad Request) akibat karakter <, >, & pada nama atau alamat
+ */
+export function escHtml(str: string | undefined | null): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Format pesan notifikasi pengembalian unit untuk Telegram Admin (HTML Safe - F-15)
  */
 export function formatTelegramReturnAlertMessage(
   booking: BookingRecord,
@@ -41,73 +53,74 @@ export function formatTelegramReturnAlertMessage(
     overdue: '🔴 <b>PERINGATAN SEWA TERLAMBAT / OVERDUE!</b>',
   };
 
-  const formattedMulai = booking.jamTanggalMulai.replace('T', ' ');
-  const formattedSelesai = booking.jamTanggalSelesai.replace('T', ' ');
+  const formattedMulai = escHtml(booking.jamTanggalMulai.replace('T', ' '));
+  const formattedSelesai = escHtml(booking.jamTanggalSelesai.replace('T', ' '));
   const dendaFormatted = dendaEstimasi > 0 
     ? `Rp ${dendaEstimasi.toLocaleString('id-ID')}` 
-    : (booking.dendaNominal > 0 ? `Rp ${booking.dendaNominal.toLocaleString('id-ID')}` : 'Rp 0 (Tepat Waktu)');
+    : (booking.dendaNominal && booking.dendaNominal > 0 ? `Rp ${booking.dendaNominal.toLocaleString('id-ID')}` : 'Rp 0 (Tepat Waktu)');
 
   return `${urgencyHeader[urgency]}
 
-📋 <b>No. Booking:</b> <code>${booking.noBooking}</code>
-👤 <b>Penyewa:</b> ${booking.nama}
-📱 <b>Kontak WhatsApp:</b> +${booking.nomorWa}
-🆘 <b>Kontak Darurat:</b> ${booking.noTelpDarurat || '-'}
-📍 <b>Alamat Saat Ini:</b> ${booking.alamatSaatIni || '-'}
+📋 <b>No. Booking:</b> <code>${escHtml(booking.noBooking)}</code>
+👤 <b>Penyewa:</b> ${escHtml(booking.nama)}
+📱 <b>Kontak WhatsApp:</b> +${escHtml(booking.nomorWa)}
+🆘 <b>Kontak Darurat:</b> ${escHtml(booking.noTelpDarurat || '-')}
+📍 <b>Alamat Saat Ini:</b> ${escHtml(booking.alamatSaatIni || '-')}
 
-🛵 <b>Unit Motor:</b> ${booking.snapshotNamaMotor}
-🏷️ <b>Kode Fisik:</b> <b>${booking.snapshotKodeUnit || 'Unit Garasi'}</b>
-🪖 <b>Kelengkapan:</b> ${booking.jumlahHelm || 2} Helm SNI
+🛵 <b>Unit Motor:</b> ${escHtml(booking.snapshotNamaMotor)}
+🏷️ <b>Kode Fisik:</b> <b>${escHtml(booking.snapshotKodeUnit || 'Unit Garasi')}</b>
+🪖 <b>Kelengkapan:</b> ${booking.jumlahHelm ?? 1} Helm SNI
 
 ⏰ <b>Jadwal Sewa:</b>
 • Mulai: ${formattedMulai} WIB
 • Tenggat Kembali: <b>${formattedSelesai} WIB</b>
-📍 <b>Lokasi Penjemputan:</b> ${booking.alamatPenjemputan}
-🛵 <b>Kurir Lapangan:</b> ${booking.kurirPengantar || 'Belum Ditugaskan'}
+📍 <b>Lokasi Penjemputan:</b> ${escHtml(booking.alamatPenjemputan)}
+🛵 <b>Kurir Lapangan:</b> ${escHtml(booking.kurirPengantar || 'Belum Ditugaskan')}
 
 💰 <b>Tarif Dasar:</b> Rp ${booking.totalHargaEstimasi.toLocaleString('id-ID')}
 ⚠️ <b>Estimasi Denda Telat:</b> <b>${dendaFormatted}</b>
-${booking.dendaKeterangan ? `<i>(${booking.dendaKeterangan})</i>` : ''}
+${booking.dendaKeterangan ? `<i>(${escHtml(booking.dendaKeterangan)})</i>` : ''}
 
 ---------------------------------------
-<b>PILIH OPSI TINDAK LANJUT ADMIN DI BAWAH:</b>
-Silakan tinjau dan klik aksi yang disetujui.`;
+<b>AKSI OPERASIONAL 1-KLIK (AKSI LANGSUNG TELEGRAM):</b>
+Klik opsi tombol di bawah untuk respon instan tanpa webhook server.`;
 }
 
 /**
- * Buat tombol inline keyboard interaktif Telegram untuk opsi review dan aksi
+ * Buat tombol inline keyboard interaktif Telegram (Actionable URLs F-15)
+ * Karena SPA berjalan tanpa webhook server publik, tombol aksi langsung membuka tautan responsif (WA & Maps).
  */
 export function createTelegramReturnActionButtons(booking: BookingRecord): TelegramInlineKeyboardMarkup {
+  const cleanPhone = (booking.nomorWa || '').replace(/[^0-9]/g, '');
+  const waTarget = cleanPhone.startsWith('08') ? '62' + cleanPhone.slice(1) : cleanPhone;
+  const waText = encodeURIComponent(
+    `Halo Kak ${booking.nama}, kami dari Ryoko Rent mengingatkan jadwal pengembalian unit ${booking.snapshotNamaMotor} (${booking.snapshotKodeUnit || ''}) tenggat ${booking.jamTanggalSelesai.replace('T', ' ')} WIB. Mohon persiapkan unit sewa ya Kak.`
+  );
+
+  const mapsQuery = encodeURIComponent(booking.alamatPenjemputan || 'Malang, Jawa Timur');
+
   return {
     inline_keyboard: [
       [
         {
-          text: '🔍 1. Review Detail Booking',
+          text: '💬 1. Chat WhatsApp Tamu (Pengingat)',
+          url: `https://wa.me/${waTarget}?text=${waText}`,
+        },
+      ],
+      [
+        {
+          text: '📍 2. Buka Lokasi Jemput di Google Maps',
+          url: `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`,
+        },
+      ],
+      [
+        {
+          text: '🔍 3. Review Booking di Aplikasi',
           callback_data: `ryoko_rev:${booking.id}`,
         },
-      ],
-      [
         {
-          text: '✅ 2. Setujui Selesai (Unit Diterima)',
+          text: '✅ 4. Setujui Selesai',
           callback_data: `ryoko_act_finish:${booking.id}`,
-        },
-      ],
-      [
-        {
-          text: '⏳ 3. Perpanjang Sewa (Extend)',
-          callback_data: `ryoko_act_extend:${booking.id}`,
-        },
-      ],
-      [
-        {
-          text: '⚠️ 4. Kenakan Denda Keterlambatan',
-          callback_data: `ryoko_act_fine:${booking.id}`,
-        },
-      ],
-      [
-        {
-          text: '💬 Hubungi Tamu via WhatsApp',
-          url: `https://api.whatsapp.com/send?phone=${booking.nomorWa}&text=Halo%20Kak%20${encodeURIComponent(booking.nama)},%20kami%20dari%20Ryoko%20Rent%20Malang%20mengingatkan%20jadwal%20pengembalian%20unit%20${encodeURIComponent(booking.snapshotNamaMotor)}.`,
         },
       ],
     ],

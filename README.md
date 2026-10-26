@@ -85,6 +85,37 @@ Setiap unit fisik motor terpantau lokasinya secara transparan:
 - 4 tingkat urgensi visual: **Aman (Hijau)**, **H-2 Jam (Kuning)**, **H-1 Jam (Oranye)**, **Overdue/Terlambat (Merah Berkedip)**.
 - Rumus denda keterlambatan bertingkat (*step-up*) untuk paket jam, serta denda harian per jam untuk sewa harian/bulanan dengan toleransi 60 menit.
 
+### 10. ⚡ Fitur 'Quick Share' WhatsApp & Modal Detail Booking
+- Komponen modal detail booking komprehensif (`BookingDetailModal.tsx`) dengan tab navigasi ganda: Rincian Transaksi 13 Poin & Quick Share WhatsApp.
+- Generator 3 template pesan WhatsApp resmi otomatis:
+  1. **Konfirmasi Booking**: Rincian pemesanan lengkap, jadwal ambil/kembali, lokasi serah terima, rincian biaya, kelengkapan helm/jas hujan, dan instruksi verifikasi identitas fisik.
+  2. **Pengingat Pengembalian**: Reminder ramah tenggat sewa, lokasi pengembalian, checklist pengecekan BBM/STNK/helm/barang bagasi, serta opsi perpanjangan sewa sebelum denda D-27.
+  3. **Ucapan Terima Kasih**: Apresiasi pasca sewa selesai, ajakan review rating bintang 5 Google Maps, dan voucher diskon khusus repeat order.
+- Fitur **Live WhatsApp Preview Box**, tombol 1-klik **Kirim ke WhatsApp**, dan 1-klik **Salin Pesan**.
+- Tombol pintas Quick Share disematkan langsung di kartu transaksi Bookings, header kartu, dan modal Kwitansi Digital.
+
+### 11. 📊 Visual Analytics Tren Pendapatan 7 Hari Terakhir (Recharts)
+- Integrasi pustaka **Recharts** pada `DashboardView` via komponen `RevenueTrendChart.tsx`.
+- Mode tampilan interaktif: **Kurva Area** (Sewa Pokok vs Denda vs Total) dan **Batang Unit** (Pola Permintaan Pasar).
+- Indikator metrik kunci: Total Omset 7 Hari, Rata-Rata Harian, Puncak Permintaan (*Peak Demand Day* di akhir pekan), dan Volume Unit Disewa.
+- Tooltip gelap (*dark-themed custom tooltip*) yang informatif dan responsif.
+
+### 12. 📈 Laporan Kinerja Bulanan & Tingkat Okupansi Armada (`MonthlyReportView`)
+- Modul analisis jangka panjang untuk pemilik rental:
+  $$\text{Tingkat Okupansi (\%)} = \frac{\text{Total Hari-Unit Tersewa}}{\text{Kapasitas Armada (16 Unit} \times \text{Hari dalam Bulan)}} \times 100\%$$
+- Grafik ganda Recharts (`ComposedChart`): Batang Pendapatan Bulanan (Rp) dan Garis Tingkat Okupansi (%).
+- Tabel histori operasional multi-bulan (Mei s/d Oktober 2026): Omset pokok, denda overtime, biaya pemeliharaan servis garasi (7 kategori), laba bersih operasional, dan model terlaris.
+- Pemetaan distribusi pangsa pasar per model motor armada (*Honda Scoopy*, *Yamaha NMAX*, *Honda CRF 150L*, *Yamaha Fazzio*).
+- Tombol **Salin Memo WhatsApp Manajemen** untuk pelaporan eksekutif kepada pemilik/investor dan tombol **Cetak PDF**.
+
+### 13. 📝 Log Operasional Harian & Catatan Insiden Lapangan
+- Komponen terintegrasi pada `DashboardView` (`DailyOperationalLogSection.tsx`) untuk mendokumentasikan serah terima shift harian, kendala teknis unit, kondisi cuaca, hingga insiden kemacetan jalur wisata Malang & Batu.
+- Tersimpan permanen ke database **LocalStorage** (`dailyOperationalLogs`) dengan auto-migrasi aman.
+- Filter klasifikasi terarah: **Serah Terima Shift**, **Insiden Lapangan**, **Lalu Lintas & Cuaca**, **Kondisi Armada**, dan **Instruksi Tim**.
+- Indikator tingkat urgensi visual bertingkat: **Normal**, **Penting (⚠️)**, dan **Darurat (🚨 Berkedip)**.
+- Form pencatatan cepat dengan dukungan pengaitan unit fisik garasi (`SCP-01`, `NMAX-02`), titik lokasi kejadian, kronologi lengkap, dan identitas penulis.
+- Fitur **1-Klik Kirim WA / Salin Format**: Menghasilkan format pesan WhatsApp rapi untuk dibagikan secara instan ke grup koordinasi kurir dan manajemen rental.
+
 ---
 
 ## 📝 Template Booking 13 Field
@@ -142,8 +173,9 @@ Format standar transaksi pemesanan unit RyokoRent:
 ## 🛠️ Tech Stack
 
 - **Framework Frontend:** React 19 + TypeScript
-- **Bundler:** Vite 8
+- **Bundler:** Vite 8 (Modern ESM with `import.meta.dirname`)
 - **Styling:** Tailwind CSS v4 + Motion
+- **Visualisasi Data & Grafik:** Recharts (^3.10.1)
 - **Ikonografi:** Lucide React
 - **PWA Engine:** `vite-plugin-pwa` + Web App Manifest
 - **Penyimpanan Data:** Browser LocalStorage (`ryokourent_db_v1`) + Export/Import JSON
@@ -212,13 +244,27 @@ Aplikasi dapat dipasang langsung pada perangkat Android tanpa Google Play Store:
 ├── scripts/
 │   └── zlce/                    # Skrip pengujian status ZLCE (zlce-check.py, snapshot, collect)
 ├── src/
-│   ├── components/              # Antarmuka modular (Dashboard, Bookings, Fleet, Kurir, Kwitansi, dll.)
+│   ├── components/              # Antarmuka modular:
+│   │   ├── DashboardView.tsx    # Pusat kontrol, metrik, ketersediaan, & tren Recharts
+│   │   ├── DailyOperationalLogSection.tsx # Log harian, serah terima shift & insiden lapangan
+│   │   ├── MonthlyReportView.tsx# Laporan kinerja bulanan & okupansi armada jangka panjang
+│   │   ├── RevenueTrendChart.tsx# Visualisasi tren omset 7 hari (Recharts Area & Bar)
+│   │   ├── BookingDetailModal.tsx# Detail booking & generator Quick Share WhatsApp 3 template
+│   │   ├── BookingsView.tsx     # State machine sewa motor & kartu booking interaktif
+│   │   ├── DigitalReceiptModal.tsx # Kwitansi paperless PDF & salin nota kasir
+│   │   ├── CountdownAlertBanner.tsx # Alert jatuh tempo real-time bergradasi
+│   │   ├── CourierDashboardView.tsx # Portal tugas kurir antar/jemput & WhatsApp tamu
+│   │   ├── FleetView.tsx        # Manajemen armada, master model motor, & bulk pricing
+│   │   ├── ServiceLogsView.tsx  # Catatan servis rutin garasi 7 kategori
+│   │   ├── UserManagementView.tsx # Manajemen akun pengguna & RBAC 4 tingkat
+│   │   ├── SettingsView.tsx     # Konfigurasi, Google Sheets webhook, & Bot Telegram
+│   │   └── RecoveryTab.tsx      # Wizard snapshot ZLCE Studio
 │   ├── data/                    # Seed data 16 unit garasi, 6 model, dan transaksi awal
 │   ├── services/                # Logika bisnis: bookingEngine, whatsappService, googleSheets, telegramBot
-│   ├── types/                   # Definisi tipe TypeScript ryoko.ts
-│   └── utils/                   # Helper hitung mundur, parser chat WhatsApp, formatting
+│   ├── types/                   # Definisi tipe TypeScript ryoko.ts & zlce.ts
+│   └── utils/                   # Helper hitung mundur, parser chat WhatsApp, clipboard, formatting
 ├── public/                      # Aset statis, ikon Android PWA, favicon
-├── vite.config.ts               # Konfigurasi bundler Vite & PWA
+├── vite.config.ts               # Konfigurasi bundler Vite & PWA (import.meta.dirname)
 └── package.json                 # Metadata pustaka dan dependensi
 ```
 

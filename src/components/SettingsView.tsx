@@ -76,6 +76,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [integrationStatus, setIntegrationStatus] = useState<string>('');
   const [isTestingTg, setIsTestingTg] = useState<boolean>(false);
   const [isSyncingSheets, setIsSyncingSheets] = useState<boolean>(false);
+  const [includeBackupSecrets, setIncludeBackupSecrets] = useState<boolean>(false);
 
   // Anti-NIK interactive tester
   const [testNikInput, setTestNikInput] = useState('Contoh NIK KTP: 3573011205980001');
@@ -146,12 +147,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handleDownloadBackup = () => {
-    const jsonStr = exportDatabaseJSON();
+    const jsonStr = exportDatabaseJSON(includeBackupSecrets);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ryokourent_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `ryokourent_backup_${includeBackupSecrets ? 'full_' : 'sanitized_'}${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -355,7 +356,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <Download className="w-4 h-4 text-cyan-400 shrink-0" />
             <div>
               <strong className="block text-white">Unduh Cadangan</strong>
-              <span className="text-[11px] text-slate-400">Ekspor format file JSON</span>
+              <span className="text-[11px] text-slate-400">
+                {includeBackupSecrets ? 'Format JSON (Semua Data + Kredensial)' : 'Format JSON (Sanitasi Rahasia F-13)'}
+              </span>
             </div>
           </button>
 
@@ -378,6 +381,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <span className="text-[11px] text-red-300/80">Muat ulang data standar</span>
             </div>
           </button>
+        </div>
+
+        {/* Security Toggle: Include Secrets */}
+        <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-400 bg-slate-950 p-2.5 rounded-xl border border-slate-800/60">
+          <input
+            type="checkbox"
+            id="includeBackupSecretsToggle"
+            checked={includeBackupSecrets}
+            onChange={e => setIncludeBackupSecrets(e.target.checked)}
+            className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-cyan-500"
+          />
+          <label htmlFor="includeBackupSecretsToggle" className="cursor-pointer select-none">
+            Sertakan kredensial (Token Telegram & Webhook Sheets). <em>Default aman: tidak disertakan untuk mencegah kebocoran token (F-13).</em>
+          </label>
         </div>
       </div>
 
@@ -549,14 +566,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         )}
       </div>
 
-      {/* 4. Uji Kepatuhan Anti-NIK UU PDP No. 27/2022 (D-21) */}
+      {/* 4. Uji Kepatuhan Anti-NIK UU PDP No. 27/2022 (D-21 & F-14) */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Pengujian Kepatuhan UU PDP No. 27/2022 (Sensor Anti-NIK D-21)</span>
+          <span>Pengujian Kepatuhan UU PDP No. 27/2022 (Sensor Anti-NIK D-21 & F-14)</span>
         </h3>
         <p className="text-slate-400">
-          Ryoko Rent mematuhi UU Perlindungan Data Pribadi dengan melarang penyimpanan 16 digit NIK. Setiap input 16 angka berurutan disensor otomatis.
+          Ryoko Rent mematuhi UU Perlindungan Data Pribadi No. 27/2022 dengan melarang penyimpanan 16 digit NIK. Setiap input 16 angka berurutan disensor otomatis menggunakan masking bintang (************XXXX) untuk menjamin privasi identitas penyewa.
         </p>
 
         <div className="space-y-2 bg-slate-950 p-3.5 rounded-xl border border-slate-800">

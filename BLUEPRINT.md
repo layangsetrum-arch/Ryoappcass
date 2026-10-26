@@ -26,6 +26,7 @@
 | `vite-plugin-pwa` | `^2.0.0` | PWA service worker, web manifest, offline assets |
 | `lucide-react` | `^0.546.0` | Clean iconography |
 | `motion` | `^12.23.24` | Micro-interactions |
+| `recharts` | `^3.10.1` | Visual analytics grafik tren pendapatan & okupansi |
 | `typescript` | `^7.0.2` | Type-safety & compile verification |
 
 ---
@@ -74,6 +75,10 @@
 | **M-06: Panel Catatan Servis Rutin** | Catatan 7 kategori servis berkala, riwayat KM, tanggal, biaya, mekanik | `ServiceLogsView.tsx` |
 | **M-07: ZLCE Studio & Recovery Wizard** | Integrasi tab Recovery ZLCE untuk pembuatan snapshot pemulihan langsung dari UI | `RecoveryTab.tsx` / `ZlceTab.tsx` |
 | **M-08: Database & Pengaturan** | LocalStorage persistence, export/import JSON, reset pabrik | `SettingsView.tsx`, `storageService.ts` |
+| **M-09: Visual Analytics 7 Hari (Recharts)** | Kurva tren omset harian dan grafik batang intensitas permintaan unit | `RevenueTrendChart.tsx`, `DashboardView.tsx` |
+| **M-10: Laporan Kinerja Bulanan & Okupansi** | Rekapitulasi multi-bulan, formula okupansi armada, evaluasi laba bersih, memo WA | `MonthlyReportView.tsx` |
+| **M-11: Modal Detail & Quick Share WhatsApp** | Detail 13 poin pemesanan dan generator 3 template WhatsApp instan (Konfirmasi, Pengingat, Terima Kasih) | `BookingDetailModal.tsx` |
+| **M-12: Log Operasional Harian & Insiden** | Catatan serah terima shift, insiden lapangan, info lalu lintas/cuaca, filter prioritas & LocalStorage sync | `DailyOperationalLogSection.tsx`, `DashboardView.tsx` |
 
 *(Catatan: Modul WhatsApp dan Integrasi dipindahkan ke Bagian 10 sesuai instruksi).*
 
@@ -160,3 +165,8 @@ Integrasi WhatsApp diperluas dengan generator template pesan UTF-8:
 4. **Pengingat Jatuh Tempo (H-2 Jam):** Pesan pengingat ramah ke penyewa sebelum waktu pengembalian berakhir agar tidak terkena denda keterlambatan.
 5. **Kwitansi Pengembalian & Denda:** Rincian perhitungan denda (bila ada) dan konfirmasi unit telah diterima kembali.
 6. **Notifikasi Unit Selesai Servis:** Pesan konfirmasi ke operator saat unit selesai diservis dari bengkel rekanan.
+7. **Quick Share 3 Template Resmi Tamu:**
+   - *Konfirmasi Booking*: Rincian pemesanan lengkap, jadwal serah terima, rincian biaya, dan kelengkapan 2 helm SNI.
+   - *Pengingat Pengembalian*: Reminder tenggat sewa, titik pengembalian, checklist BBM/STNK/helm, dan opsi perpanjangan sewa.
+   - *Ucapan Terima Kasih*: Apresiasi perjalanan di Malang & Batu, ajakan rating bintang 5 Google Maps, dan voucher diskon repeat order.
+8. **Memo Eksekutif Laporan Bulanan:** Format ringkasan kinerja bulanan dan tingkat okupansi armada untuk pelaporan manajemen.

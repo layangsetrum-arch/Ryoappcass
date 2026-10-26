@@ -1,6 +1,6 @@
 {
-  "name": "RyokouAppcass",
-  "description": "Aplikasi Android Administrasi Rental Sepeda Motor Ryoko Rent Malang & Batu berbasis LocalStorage, pelacakan armada, dan integrasi WhatsApp",
+  "name": "Remix Ryoappcass",
+  "description": "Imported from  aistudio share",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

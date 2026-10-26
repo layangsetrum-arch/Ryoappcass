@@ -133,45 +133,53 @@ export function formatBookingToSheetsRow(booking: BookingRecord): GoogleSheetsRo
 }
 
 /**
+ * Sanitasi sel CSV dengan pencegahan Formula Injection (=, +, -, @) (F-16)
+ */
+export function csvCell(val: unknown): string {
+  if (val === null || val === undefined) return '""';
+  let str = String(val);
+  // Netralkan formula injection pada spreadsheet
+  if (/^[=+\-@]/.test(str)) {
+    str = `'${str}`;
+  }
+  const escaped = str.replace(/"/g, '""');
+  return `"${escaped}"`;
+}
+
+/**
  * Ekspor seluruh data booking ke format CSV yang kompatibel 100% dengan Google Sheets & Excel.
  */
 export function generateBookingsCSV(bookings: BookingRecord[]): string {
-  const escapeCell = (val: unknown): string => {
-    if (val === null || val === undefined) return '""';
-    const str = String(val).replace(/"/g, '""');
-    return `"${str}"`;
-  };
-
-  const headerRow = SHEETS_HEADER_COLUMNS.map(escapeCell).join(',');
+  const headerRow = SHEETS_HEADER_COLUMNS.map(csvCell).join(',');
   const dataRows = bookings.map(b => {
     const row = formatBookingToSheetsRow(b);
     return [
-      escapeCell(row.noBooking),
-      escapeCell(row.waktuPemesanan),
-      escapeCell(row.statusSewa),
-      escapeCell(row.namaPenyewa),
-      escapeCell(row.nomorWa),
-      escapeCell(row.noDarurat),
-      escapeCell(row.alamatKtp),
-      escapeCell(row.jenisIdPendukung),
-      escapeCell(row.alamatSaatIni),
-      escapeCell(row.idSosmed),
-      escapeCell(row.modelMotor),
-      escapeCell(row.kodeUnitFisik),
-      escapeCell(row.jumlahHelm),
-      escapeCell(row.durasiSewa),
-      escapeCell(row.jadwalMulai),
-      escapeCell(row.jadwalSelesai),
-      escapeCell(row.lokasiAntar),
-      escapeCell(row.lokasiJemput),
-      escapeCell(row.kurirPengantar),
-      escapeCell(row.totalEstimasiBiaya),
-      escapeCell(row.dendaKeterlambatan),
-      escapeCell(row.catatanKhusus),
-      escapeCell(row.statusReviewAdmin),
-      escapeCell(row.opsiTindakLanjut),
-      escapeCell(row.aksiTerakhirDisetujui),
-      escapeCell(row.timestampSync),
+      csvCell(row.noBooking),
+      csvCell(row.waktuPemesanan),
+      csvCell(row.statusSewa),
+      csvCell(row.namaPenyewa),
+      csvCell(row.nomorWa),
+      csvCell(row.noDarurat),
+      csvCell(row.alamatKtp),
+      csvCell(row.jenisIdPendukung),
+      csvCell(row.alamatSaatIni),
+      csvCell(row.idSosmed),
+      csvCell(row.modelMotor),
+      csvCell(row.kodeUnitFisik),
+      csvCell(row.jumlahHelm),
+      csvCell(row.durasiSewa),
+      csvCell(row.jadwalMulai),
+      csvCell(row.jadwalSelesai),
+      csvCell(row.lokasiAntar),
+      csvCell(row.lokasiJemput),
+      csvCell(row.kurirPengantar),
+      csvCell(row.totalEstimasiBiaya),
+      csvCell(row.dendaKeterlambatan),
+      csvCell(row.catatanKhusus),
+      csvCell(row.statusReviewAdmin),
+      csvCell(row.opsiTindakLanjut),
+      csvCell(row.aksiTerakhirDisetujui),
+      csvCell(row.timestampSync),
     ].join(',');
   });
 
@@ -244,7 +252,7 @@ export async function syncBookingToGoogleSheets(
   try {
     const res = await fetch(webhookUrl.trim(), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'UPSERT_BOOKING',
         data: row,
@@ -294,7 +302,7 @@ export async function bulkSyncBookingsToGoogleSheets(
   try {
     const res = await fetch(webhookUrl.trim(), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'BULK_UPSERT',
         count: rows.length,
