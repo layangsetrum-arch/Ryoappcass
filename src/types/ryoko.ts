@@ -228,6 +228,30 @@ export interface AppUser {
   createdAt: string;
 }
 
+export type OperationalLogCategory =
+  | 'catatan_shift'     // Catatan Operasional / Serah Terima Shift
+  | 'insiden_lapangan'  // Insiden / Kendala di Lapangan
+  | 'lalu_lintas_cuaca' // Info Cuaca & Kondisi Lalu Lintas Malang/Batu
+  | 'kondisi_armada'    // Temuan Fisik Unit / Kendala Mesin Ringan
+  | 'instruksi_tim';    // Instruksi Owner / Koordinasi Tim Lapangan
+
+export type OperationalLogPriority = 'normal' | 'penting' | 'darurat';
+
+export interface DailyOperationalLog {
+  id: string;
+  tanggal: string;      // YYYY-MM-DD
+  waktu: string;        // HH:mm WIB
+  kategori: OperationalLogCategory;
+  prioritas: OperationalLogPriority;
+  judul: string;
+  catatan: string;
+  unitTerkait?: string; // e.g. "SCP-01", "NMAX-02" atau "Semua"
+  lokasi?: string;      // e.g. "Pool Dinoyo", "Kusuma Agrowisata Batu"
+  penulis: string;      // Nama staf / admin yang mencatat
+  penulisRole: string;  // Role staf
+  createdAt: string;    // ISO timestamp
+}
+
 export interface RyokoDatabase {
   version: string;
   lastUpdated: string;
@@ -237,6 +261,7 @@ export interface RyokoDatabase {
   bookings: BookingRecord[];
   packages: RentalPackage[];
   serviceRecords: ServiceRecord[];
+  dailyOperationalLogs?: DailyOperationalLog[];
   users: AppUser[];
   currentUserId: string;
   settings: RentalSettings;

@@ -14,6 +14,9 @@ Definisi task. **Status task tidak ditulis di sini**; status ada di `SESSION_STA
 * **FASE 5: Panel Manajemen User & Role-Based Access Control 4 Tingkat** (`TASK-006`)
 * **FASE 6: Kwitansi Paperless, Countdown Real-Time & Armada Dinamis** (`TASK-007`, `TASK-008`, `TASK-009`)
 * **FASE 7: Review Claude, README Resmi, & Integrasi Kolaborasi Eksternal** (`TASK-010`, `TASK-011`, `TASK-012`, `TASK-013`, `TASK-014`)
+* **FASE 8: Quick Share WhatsApp, Recharts Visualizer & Laporan Okupansi Bulanan** (`TASK-015`, `TASK-016`, `TASK-017`)
+* **FASE 9: Integritas Jadwal, Mesin Transisi Terproteksi & Redaksi Keamanan** (`TASK-018`, `TASK-019`, `TASK-020`)
+* **FASE 10: Robustness Integrasi Eksternal & Optimasi Mobile PWA** (`TASK-021`, `TASK-022`)
 
 ---
 
@@ -238,3 +241,140 @@ Definisi task. **Status task tidak ditulis di sini**; status ada di `SESSION_STA
   4. Banner hitung mundur memiliki tombol pemicu notifikasi Telegram instan.
 * **Test Case:** Telegram alert generation & callback handler
 * **Metode Verifikasi:** Jalankan `npm run lint` dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-015: Fitur 'Quick Share' WhatsApp & Modal Detail Booking
+* **Fase:** FASE 8
+* **Deskripsi:** Mengimplementasikan modal detail transaksi booking (`src/components/BookingDetailModal.tsx`) dan generator 3 template WhatsApp resmi (`src/services/whatsappService.ts`) mencakup Konfirmasi Booking, Pengingat Pengembalian, dan Ucapan Terima Kasih Pasca Sewa, dilengkapi live preview box, tombol 1-klik kirim ke WhatsApp, dan salin pesan ke clipboard.
+* **Dependensi:** `TASK-014`
+* **File:** `src/components/BookingDetailModal.tsx`, `src/services/whatsappService.ts`, `src/components/BookingsView.tsx`, `src/App.tsx`, `src/components/DigitalReceiptModal.tsx`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Modal detail booking menyajikan rincian lengkap 13-point dan tab khusus Quick Share.
+  2. 3 template WhatsApp terformat rapi sesuai identitas Ryoko Rent.
+  3. Tombol Quick Share disematkan pada setiap kartu booking dan kwitansi digital.
+* **Test Case:** Quick Share link generator & clipboard copy test
+* **Metode Verifikasi:** Jalankan `npm run lint` dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-016: Visual Analytics Tren 7 Hari (Recharts) & Laporan Okupansi Bulanan (`MonthlyReportView`)
+* **Fase:** FASE 8
+* **Deskripsi:** Mengintegrasikan pustaka Recharts untuk visualisasi tren omset dan intensitas permintaan unit 7 hari terakhir pada `DashboardView` (`src/components/RevenueTrendChart.tsx`), serta mengimplementasikan modul `src/components/MonthlyReportView.tsx` untuk menghitung total pendapatan, jumlah booking, biaya pemeliharaan, laba operasional, dan tingkat okupansi armada garasi bulanan (% Occupancy Rate) beserta grafik ComposedChart multi-bulan dan tombol salin memo eksekutif WhatsApp.
+* **Dependensi:** `TASK-015`
+* **File:** `src/components/RevenueTrendChart.tsx`, `src/components/MonthlyReportView.tsx`, `src/components/DashboardView.tsx`, `src/components/AndroidBottomNav.tsx`, `src/App.tsx`, `package.json`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Komponen `RevenueTrendChart` menampilkan kurva pendapatan dan grafik batang unit 7 hari terakhir.
+  2. Komponen `MonthlyReportView` menyajikan kalkulasi okupansi armada, histori multi-bulan, dan distribusi model motor.
+  3. Tab "Laporan" aktif di Android Bottom Navigation untuk peran Administrator/Owner.
+* **Test Case:** Recharts rendering, occupancy rate calculation & monthly report audit
+* **Metode Verifikasi:** Jalankan `npm run lint` dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-017: Fitur Log Operasional Harian & Catatan Insiden Lapangan di Dashboard LocalStorage
+* **Fase:** FASE 8
+* **Deskripsi:** Mengimplementasikan fitur pencatatan log harian dan insiden operasional lapangan (`src/components/DailyOperationalLogSection.tsx`) pada `DashboardView` yang tersimpan permanen dalam database LocalStorage, dilengkapi filter kategori (Serah Terima Shift, Insiden Lapangan, Lalu Lintas & Cuaca, Kondisi Armada, Instruksi Tim), filter prioritas (Normal, Penting, Darurat), pemilihan unit fisik garasi & lokasi kejadian, pencarian real-time, audit log, serta tombol cepat salin & kirim laporan via WhatsApp ke grup kurir/staf.
+* **Dependensi:** `TASK-016`
+* **File:** `src/types/ryoko.ts`, `src/data/seedData.ts`, `src/services/storageService.ts`, `src/components/DailyOperationalLogSection.tsx`, `src/components/DashboardView.tsx`, `src/App.tsx`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`, `README.md`, `CHANGELOG.md`
+* **Acceptance Criteria:**
+  1. Admin dan staf dapat menulis catatan harian, insiden lapangan, atau instruksi shift baru langsung dari Dashboard.
+  2. Data log operasional tersimpan otomatis dan persisten ke dalam skema LocalStorage (`dailyOperationalLogs`).
+  3. Tersedia indikator prioritas (Normal, Penting, Darurat dengan alert visual), filter kategori, dan pencarian teks.
+  4. Tersedia tombol 1-klik untuk menyalin format teks WhatsApp dan membagikan laporan insiden ke tim lapangan.
+* **Test Case:** Operational log creation, LocalStorage persistence & WhatsApp text generator
+* **Metode Verifikasi:** Jalankan `npm run lint`, `npm run build`, dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-018: Integritas Waktu WIB & Parser WhatsApp Bebas Fallback
+* **Fase:** FASE 9
+* **Deskripsi:** Memperbaiki pergeseran zona waktu WIB (UTC offset bug) pada input datetime-local melalui `epochToWibInput` dan `parseWibToEpoch` eksplisit timezone Asia/Jakarta (+07:00). Menulis ulang parser WhatsApp agar memecah label hanya pada titik dua pertama (`splitLabel`), memvalidasi tanggal ISO/lokal nyata tanpa lolos tanggal mustahil, mendeteksi jam 24h & kata waktu (pagi/siang/sore/malam), menghapus seluruh fallback tanggal statis (24-25 Okt, Begawan, Scoopy), serta mengembalikan daftar `warnings` untuk field yang gagal terbaca.
+* **Dependensi:** `TASK-017`
+* **File:** `src/services/bookingEngine.ts`, `src/utils/whatsappChatParser.ts`, `src/components/NewBookingModal.tsx`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Input `datetime-local` di NewBookingModal menggunakan format WIB lokal tanpa tergeser 7 jam ke masa lalu.
+  2. Parser WA tidak memotong jam bertitik dua `15:40` menjadi `40`.
+  3. Parser menolak tanggal palsu (mis. 31/02) dan mengembalikan array warnings alih-alih mengisi nilai palsu bawaan.
+  4. Jam `3.30 sore` atau `jam 3` dikonversi menjadi waktu 24 jam yang tepat (15:30 / 15:00).
+* **Test Case:** WIB datetime roundtrip & WhatsApp text parsing verification
+* **Metode Verifikasi:** Jalankan `npm run lint` dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-019: Mesin Transisi Status Guarded, Deteksi Bentrok & Kalkulasi Tarif Multi-Hari
+* **Fase:** FASE 9
+* **Deskripsi:** Mengimplementasikan mesin transisi status terproteksi (`checkTransition`) dengan matriks status valid (`NEXT`), proteksi double-booking (mencegah unit yang sedang disewa dipakai booking lain), validasi ketersediaan buffer 60 menit ulang saat persetujuan/serah terima, kalkulasi tarif multi-hari otomatis berdasarkan rentang tanggal aktual (`mulaiAt` s/d `selesaiAt`), perbaikan sinkronisasi state `selectedUnitId` pada form, tombol aksi status `ryokou_diservis`, dan validasi form HTML sebelum submit.
+* **Dependensi:** `TASK-018`
+* **File:** `src/services/bookingEngine.ts`, `src/components/NewBookingModal.tsx`, `src/components/BookingsView.tsx`, `src/components/BookingDetailModal.tsx`, `src/App.tsx`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Fungsi `checkTransition` memblokir transisi status yang tidak valid dan menolak unit yang sedang disewa.
+  2. Booking multi-hari (mis. 4 hari) otomatis dikalikan tarif harian prorata secara dinamis.
+  3. Dropdown unit pada form langsung sinkron dengan `selectedUnitId` dan dicek ulang ketersediaannya bila tanggal berubah.
+  4. Tersedia jalur transisi masuk dan keluar untuk status `ryokou_diservis`.
+  5. Tombol simpan form berada di dalam/terhubung dengan `<form>` sehingga validasi `required` aktif.
+* **Test Case:** Guarded state machine, multi-day tariff calculation & double-booking prevention
+* **Metode Verifikasi:** Jalankan `npm run lint` dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-020: Integritas Database ID, Kuota LocalStorage, Redaksi NIK & Keamanan Kunci
+* **Fase:** FASE 9
+* **Deskripsi:** Memperbaiki pembuatan nomor booking `generateBookingNumber` (`RYK-YYYYMMDD-XXX`) berbasis max sequence agar tidak duplikat saat ada entri yang dihapus, pembuatan ID `nextId` yang aman, penanganan `SaveResult` dengan deteksi `QuotaExceededError` di `saveDatabase`, sinkronisasi real-time multi-tab via event `storage`, redaksi NIK berbasis regex 16 digit (`redactNik`), dan pemisahan kredensial/token bot dalam ekspor backup JSON publik.
+* **Dependensi:** `TASK-019`
+* **File:** `src/services/storageService.ts`, `src/services/bookingEngine.ts`, `src/components/SettingsView.tsx`, `src/App.tsx`, `src/main.tsx`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Nomor booking tidak duplikat meskipun booking nomor sebelumnya dihapus.
+  2. `saveDatabase` mengembalikan status `SaveResult` dan UI menampilkan alert jika kuota penyimpanan habis.
+  3. Perubahan LocalStorage di tab lain tersinkronisasi otomatis via `window.addEventListener('storage')`.
+  4. Teks NIK 16-digit tersensor menjadi `************XXXX` pada ekspor dan pesan keluar.
+  5. Ekspor JSON default tidak menyertakan bot token Telegram dan URL webhook Sheets.
+* **Test Case:** Booking ID sequence, Quota error handling & NIK redaction test
+* **Metode Verifikasi:** Jalankan `npm run lint` dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-021: Keandalan Integrasi Telegram, Google Sheets, Rumus Denda & Normalisasi WA
+* **Fase:** FASE 10
+* **Deskripsi:** Memperbaiki integrasi Telegram dengan escaping karakter HTML (`escHtml`) dan mengganti tombol inline aksi menjadi 1-way action URL yang langsung dapat diklik, mengubah request Google Apps Script menjadi `Content-Type: text/plain;charset=utf-8` agar bebas gagal preflight CORS, membersihkan CSV cell dari formula injection (`'`, `+`, `-`, `@`, `=`), membetulkan kalkulasi denda agar tidak menghasilkan `NaN` dengan memprioritaskan `actualReturnEpoch` numerik, serta menyatukan normalisasi nomor WhatsApp dan jumlah helm di seluruh template.
+* **Dependensi:** `TASK-020`
+* **File:** `src/services/telegramBotService.ts`, `src/services/googleSheetsService.ts`, `src/services/whatsappService.ts`, `src/services/bookingEngine.ts`, `src/components/CountdownAlertBanner.tsx`, `src/components/BookingDetailModal.tsx`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`
+* **Acceptance Criteria:**
+  1. Notifikasi Telegram lolos HTML escaping tanpa error karakter khusus `<>&`.
+  2. Request Google Sheets berjalan tanpa penolakan CORS preflight dan CSV aman dari injeksi formula spreadsheet.
+  3. Perhitungan denda keterlambatan tidak menghasilkan `RpNaN` dan menghitung kelebihan jam di atas toleransi dengan benar.
+  4. Generator template WhatsApp menggunakan satu fungsi normalisasi nomor telepon dan jumlah helm sesuai pesanan (1 atau 2).
+* **Test Case:** Telegram HTML escaping, Sheets CORS bypass, fine calculation & WhatsApp normalization
+* **Metode Verifikasi:** Jalankan `npm run lint` dan `python3 scripts/zlce/zlce-check.py .`.
+
+---
+
+### TASK-022: Mobile PWA Viewport, Navigasi Sticky, Touch Target & Repo Hygiene
+* **Fase:** FASE 10
+* **Deskripsi:** Mengoptimalkan kenyamanan penggunaan mobile Android PWA dengan menjadikan `AndroidBottomNav` berposisi `sticky bottom-0 z-50` yang dilengkapi `env(safe-area-inset-bottom)`, penggunaan viewport dinamis `100dvh`, pengaktifan kembali `user-scalable=yes` pada `index.html` demi kepatuhan WCAG, perbesaran touch target tombol interaktif menjadi minimum 44px, pembersihan nama paket `package.json`, dan perapian data contoh booking agar bersih dari mock usang.
+* **Dependensi:** `TASK-021`
+* **File:** `src/components/AndroidBottomNav.tsx`, `src/App.tsx`, `index.html`, `package.json`, `SECURITY.md`, `src/data/seedData.ts`
+* **Docs Terkait:** `BLUEPRINT.md`
+* **Docs Impact:** `BLUEPRINT.md`, `SESSION_STATE.md`, `README.md`
+* **Acceptance Criteria:**
+  1. Bottom navigation tetap menempel di dasar layar perangkat Android (sticky bottom) saat konten di-scroll.
+  2. Layar aplikasi mendukung viewport dinamis (`dvh`) dan zoom aksesibilitas aktif.
+  3. Target sentuh tombol dan elemen navigasi memenuhi standar ergonomi minimal 44px.
+  4. `package.json` dan data contoh fiktif bersih dan higienis.
+* **Test Case:** Mobile viewport audit, touch target ergonomics & production build
+* **Metode Verifikasi:** Jalankan `npm run lint`, `npm run build`, dan `python3 scripts/zlce/zlce-check.py .`.
+

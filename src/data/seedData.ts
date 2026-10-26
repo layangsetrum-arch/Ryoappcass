@@ -1,4 +1,4 @@
-import { RyokoDatabase, AppUser } from '../types/ryoko';
+import { RyokoDatabase, AppUser, DailyOperationalLog } from '../types/ryoko';
 
 export const DEFAULT_USERS: AppUser[] = [
   {
@@ -533,6 +533,50 @@ export const INITIAL_DATABASE: RyokoDatabase = {
       bengkelMekanik: 'Bengkel Sumber Rejeki Batu',
       keterangan: 'Ganti oli gear gardan Honda 120ml',
       createdAt: '2026-10-05 13:00 WIB',
+    },
+  ],
+  dailyOperationalLogs: [
+    {
+      id: 'log-001',
+      tanggal: '2026-10-24',
+      waktu: '14:30 WIB',
+      kategori: 'insiden_lapangan',
+      prioritas: 'penting',
+      judul: 'Rekayasa Lalu Lintas Jalur Wisata Batu & Penyesuaian Rute Kurir',
+      catatan: 'Terjadi kemacetan padat di sekitar Alun-Alun Batu dan pertigaan Pendem karena perbaikan jalan. Kurir Agus & Rizky diarahkan melintas jalur alternatif Karangploso - Giripurno untuk pengantaran unit NMAX-01 dan PCX-01.',
+      unitTerkait: 'NMAX-01, PCX-01',
+      lokasi: 'Pertigaan Pendem & Alun-Alun Batu',
+      penulis: 'Budi Santoso',
+      penulisRole: 'Administrator',
+      createdAt: '2026-10-24T14:30:00.000Z',
+    },
+    {
+      id: 'log-002',
+      tanggal: '2026-10-24',
+      waktu: '11:15 WIB',
+      kategori: 'kondisi_armada',
+      prioritas: 'normal',
+      judul: 'Pengecekan Rutin Spion & Tekanan Angin Ban Unit Garasi Dinoyo',
+      catatan: 'Unit Scoopy SCP-02 baut spion kiri dikencangkan dan tekanan ban disesuaikan (depan 29 psi, belakang 33 psi). Unit sudah siap 100% untuk sewa sore.',
+      unitTerkait: 'SCP-02',
+      lokasi: 'Pool Dinoyo Malang',
+      penulis: 'Dimas Pratama',
+      penulisRole: 'Operator',
+      createdAt: '2026-10-24T11:15:00.000Z',
+    },
+    {
+      id: 'log-003',
+      tanggal: '2026-10-24',
+      waktu: '08:00 WIB',
+      kategori: 'catatan_shift',
+      prioritas: 'normal',
+      judul: 'Briefing Shift Pagi & Penyiapan Jas Hujan + Helm SNI Bersih',
+      catatan: 'Seluruh 16 set jas hujan ponco ganda dan 24 helm SNI telah dicuci higienis dan disemprot disinfektan. Kunci kontak cadangan disimpan rapi di brankas pool.',
+      unitTerkait: 'Semua Unit',
+      lokasi: 'Pool Dinoyo & Pool Batu',
+      penulis: 'Budi Santoso',
+      penulisRole: 'Administrator',
+      createdAt: '2026-10-24T08:00:00.000Z',
     },
   ],
   users: DEFAULT_USERS,
